@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import {Component} from '@angular/core';
 import 'hammerjs';
+import {Main} from '../../backend/libs/jflex/Main';
 
 @Component({
   selector: 'app-code-generation',
@@ -8,4 +9,5 @@ import 'hammerjs';
 })
 export class CodeComponent {
   title = 'Code Generation Place Holder';
+  temp: Main;
 }
