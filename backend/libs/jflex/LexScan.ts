@@ -47,7 +47,7 @@ export class LexScan {
   commentbalance;
   action_line;
   bufferSize;
-  file;
+  // file;
   files;
   userCode: string;
   classCode;
@@ -93,32 +93,33 @@ export class LexScan {
   macroDefinition;
   t: Timer;
   private zzReader: JavaFileReader;
-  private zzState;
-  private zzLexicalState: number;
-  private zzBuffer: string;
-  private zzMarkedPos;
-  private zzPushbackPos;
-  private zzCurrentPos;
-  private zzStartRead;
-  private zzEndRead;
-  private yyline;
-  private yychar;
-  private yycolumn;
-  private zzAtBOL;
-  private zzAtEOF;
-  private zzStreams;
-  private zzEOFDone;
+  private zzState = 0;
+  private zzLexicalState = 0;
+  private zzBuffer = '';
+  private readonly zzBufferLength = 16384;
+  private zzMarkedPos = 0;
+  private zzPushbackPos = -1;
+  private zzCurrentPos = 0;
+  private zzStartRead = 0;
+  private zzEndRead = 0;
+  private yyline = 0;
+  private yychar = 0;
+  private yycolumn = 0;
+  private zzAtBOL = true;
+  private zzAtEOF = false;
+  private zzStreams = [];
+  private zzEOFDone = false;
   private nextState;
   
   public constructor (reader: JavaFileReader) {
     this.zzLexicalState = 0;
     this.zzBuffer = '';
+    this.zzBufferLength = 16384;
     this.zzAtBOL = true;
     this.zzStreams = [];
     this.balance = 0;
     this.commentbalance = 0;
     this.action_line = 0;
-    this.bufferSize = 16384;
     this.files = [];
     this.userCode = '';
     this.cupSymbol = 'sym';
@@ -221,7 +222,7 @@ export class LexScan {
     if (packed) {
       let i = 0;
       let j = offset;
-      const l = packed.length();
+      const l = packed.length;
       
       while (i < l) {
         let count = new JavaCharacter(packed.charAt(i++)).code;
@@ -251,7 +252,7 @@ export class LexScan {
     if (packed) {
       let i = 0;
       let j = offset;
-      const l = packed.length();
+      const l = packed.length;
       
       while (i < l) {
         let count = JavaCharacter.toCode(packed.charAt(i++));
@@ -300,9 +301,9 @@ export class LexScan {
     return this.yyline;
   }
   
-  public setFile (file) {
-    file = file;
-  }
+  // public setFile (file) {
+  //   file = file;
+  // }
   
   public yyclose () {
     this.zzAtEOF = true;
@@ -336,7 +337,7 @@ export class LexScan {
   }
   
   public yymoreStreams () {
-    return !this.zzStreams.isEmpty();
+    return !(this.zzStreams.length === 0);
   }
   
   public yyreset (reader: ReadableStreamReader) {
@@ -487,7 +488,7 @@ export class LexScan {
       let zzInput;
       while (true) {
         if (zzCurrentPosL < zzEndReadL) {
-          zzInput = zzBufferL[zzCurrentPosL++];
+          zzInput = JavaCharacter.toCode(zzBufferL[zzCurrentPosL++]);
         } else {
           if (this.zzAtEOF) {
             zzInput = -1;
@@ -507,11 +508,11 @@ export class LexScan {
             zzInput = -1;
             break;
           }
-          
-          zzInput = zzBufferL[zzCurrentPosL++];
+  
+          zzInput = JavaCharacter.toCode(zzBufferL[zzCurrentPosL++]);
         }
-        
-        const zzNext = zzTransL[zzRowMapL[this.zzState] + zzCMapL[zzInput]];
+  
+        const zzNext = zzTransL[zzRowMapL[this.zzState] + JavaCharacter.toCode(zzCMapL[zzInput])];
         if (zzNext === -1) {
           break;
         }
@@ -685,7 +686,10 @@ export class LexScan {
         case 282:
           break;
         case 3:
-          this.userCode += (this.yytext());
+          const temp = this.yytext();
+          // console.log(temp.replace("\n", ""));
+          this.userCode += temp;
+          // console.log(this.userCode + "\n");
           break;
         case 4:
           throw new Error(ErrorMessages.UNEXPECTED_CHAR + 'line: ' + this.yyline + ' col: ' + this.yycolumn);
@@ -733,7 +737,7 @@ export class LexScan {
           this.lookAheadUsed = true;
           return this.symbol(27);
         case 20:
-          this.string.setLength(0);
+          this.string = '';
           this.nextState = 10;
           this.yybegin(16);
           break;
@@ -761,7 +765,7 @@ export class LexScan {
           this.bolUsed = true;
           return this.symbol(4);
         case 31:
-          this.actionText.append(this.yytext());
+          this.actionText += this.yytext();
           break;
         case 32:
           if (this.balance <= 0) {
@@ -772,11 +776,11 @@ export class LexScan {
           }
           
           --this.balance;
-          this.actionText.append('}');
+          this.actionText += '}';
           break;
         case 33:
           ++this.balance;
-          this.actionText.append('{');
+          this.actionText += '{';
           break;
         case 34:
           return this.symbol(11);
@@ -784,7 +788,7 @@ export class LexScan {
           this.yybegin(10);
           return this.symbol(13);
         case 36:
-          this.string.append(this.yytext());
+          this.string += this.yytext();
           break;
         case 37:
           throw new Error(ErrorMessages.UNTERMINATED_STR + '( ' + this.yyline + ' ' + this.yycolumn + ')');
@@ -805,7 +809,7 @@ export class LexScan {
           
           return this.symbol(7);
         case 42:
-          this.string.setLength(0);
+          this.string = '';
           this.nextState = 18;
           this.yybegin(16);
           break;
@@ -865,7 +869,7 @@ export class LexScan {
         case 60:
           return this.symbol(39, new JavaCharacter('\b'));
         case 61:
-          this.actionText.setLength(0);
+          this.actionText = '';
           this.yybegin(12);
           this.action_line = this.yyline + 1;
           return this.symbol(18);
@@ -916,7 +920,7 @@ export class LexScan {
         case 74:
           return this.symbol(31, parseInt(this.yytext().substring(1).trim(), 10));
         case 75:
-          this.string.setLength(0);
+          this.string = '';
           this.yybegin(20);
           break;
         case 76:
@@ -1039,7 +1043,7 @@ export class LexScan {
         case 107:
           throw new Error(ErrorMessages.NO_BUFFER_SIZE + 'line: ' + this.yyline);
         case 108:
-          this.actionText.setLength(0);
+          this.actionText = '';
           this.yybegin(12);
           this.action_line = this.yyline + 1;
           return this.symbol_countUpdate(25,
@@ -1051,8 +1055,8 @@ export class LexScan {
           
           
           this.yypushStream();
-          this.files.push(this.file);
-          this.file = f;
+          // this.files.push(this.file);
+          // this.file = f;
           break;
         
         case 110:
@@ -1082,7 +1086,7 @@ export class LexScan {
         case 117:
           return this.symbol(22);
         case 118:
-          this.actionText.setLength(0);
+          this.actionText = '';
           this.yybegin(12);
           this.action_line = this.yyline + 1;
           return this.symbol(25);
@@ -1165,8 +1169,8 @@ export class LexScan {
                 if (!this.yymoreStreams()) {
                   throw new Error(ErrorMessages.EOF_IN_MACROS.toString());
                 }
-                
-                this.file = (File);
+  
+                // this.file = (File);
                 this.files.pop();
                 this.yypopStream();
                 break;
@@ -1196,8 +1200,8 @@ export class LexScan {
                 if (!this.yymoreStreams()) {
                   return this.symbol(0);
                 }
-                
-                this.file = (File);
+  
+                // this.file = (File);
                 this.files.pop();
                 this.yypopStream();
             }
@@ -1276,16 +1280,17 @@ export class LexScan {
       this.zzPushbackPos -= this.zzStartRead;
       this.zzStartRead = 0;
     }
-    
-    if (this.zzCurrentPos >= this.zzBuffer.length) {
+  
+    if (this.zzCurrentPos >= this.zzBufferLength) {
       let newBuffer = '';
-      newBuffer = this.zzBuffer.substring(0, this.zzBuffer.length);
+      newBuffer = this.zzBuffer.substring(0, this.zzBufferLength);
       this.zzBuffer = newBuffer;
     }
-    
-    
-    this.zzBuffer = this.zzReader.read(this.zzEndRead, this.zzBuffer.length - this.zzEndRead);
-    const numRead = this.zzBuffer.length;
+  
+  
+    const temp = this.zzReader.read(this.zzEndRead, this.zzBufferLength - this.zzEndRead);
+    this.zzBuffer = temp[1];
+    const numRead = temp[0];
     if (numRead < 0) {
       return true;
     } else {

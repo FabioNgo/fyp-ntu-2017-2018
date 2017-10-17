@@ -1,7 +1,9 @@
+import {JavaLong} from '../JavaLong';
+
 export class StateSetEnumerator {
   private index;
   private offset;
-  private mask;
+  private mask: JavaLong;
   private current;
   private bits;
   
@@ -15,15 +17,15 @@ export class StateSetEnumerator {
     this.bits = states.bits;
     this.index = 0;
     this.offset = 0;
-    this.mask = 1;
+    this.mask = JavaLong.getOne();
     
-    for (this.current = 0; this.index < this.bits.length && this.bits[this.index] === 0; ++this.index) {
-      
+    for (this.current = 0; this.index < this.bits.length && this.bits[this.index].toNumber() === 0; ++this.index) {
+    
     }
     
     if (this.index < this.bits.length) {
-      while (this.offset <= 63 && (this.bits[this.index] & this.mask) === 0) {
-        this.mask <<= 1;
+      while (this.offset <= 63 && (JavaLong.bitAnd(this.bits[this.index], this.mask).toNumber()) === 0) {
+        this.mask = this.mask.shiftLeft(1);
         ++this.offset;
       }
       
@@ -49,15 +51,15 @@ export class StateSetEnumerator {
     
     do {
       ++_offset;
-      _mask <<= 1;
-    } while (_offset <= 63 && (bi & _mask) === 0);
+      _mask = _mask.shiftLeft(1);
+    } while (_offset <= 63 && (JavaLong.bitAnd(bi, _mask)).toNumber() === 0);
     
     if (_offset > 63) {
       const length = _bits.length;
       
       do {
         ++_index;
-      } while (_index < length && _bits[_index] === 0);
+      } while (_index < length && _bits[_index].toNumber() === 0);
       
       if (_index >= length) {
         this.index = length;
@@ -65,10 +67,10 @@ export class StateSetEnumerator {
       }
       
       _offset = 0;
-      _mask = 1;
+      _mask = JavaLong.getOne();
       
-      for (bi = _bits[_index]; (bi & _mask) === 0; ++_offset) {
-        _mask <<= 1;
+      for (bi = _bits[_index]; JavaLong.bitAnd(bi, _mask).toNumber() === 0; ++_offset) {
+        _mask = _mask.shiftLeft(1);
       }
     }
     

@@ -39,8 +39,8 @@ export class CharClasses {
   
   public getClassCode (letter: JavaCharacter): number {
     let i = -1;
-    
-    let x;
+  
+    let x: IntCharSet;
     do {
       ++i;
       x = <IntCharSet>this.classes.elementAt(i);

@@ -1,9 +1,9 @@
 export class Symbol {
-  public sym;
-  public parse_state;
-  used_by_parser;
-  public left;
-  public right;
+  public sym = 0;
+  public parse_state = 0;
+  used_by_parser = false;
+  public left = 0;
+  public right = 0;
   public value;
   
   public constructor (id, l?, r?, o?, state?) {

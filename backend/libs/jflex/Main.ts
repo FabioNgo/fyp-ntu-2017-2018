@@ -7,8 +7,8 @@ import {Out} from './Out';
 import {Options} from './Options';
 import {JavaFileReader} from '../JavaFileReader';
 import {GeneratorException} from './GeneratorException';
-import {Emitter} from './Emitter';
 import {JavaVector} from '../JavaVector';
+import {isString} from 'util';
 
 export class Main {
   public static readonly version = '1.4';
@@ -16,9 +16,9 @@ export class Main {
   public constructor () {
   }
   
-  public static generate (input: File | string[]) {
-    if (input instanceof File) {
-      const inputFile = <File>input;
+  public static generate (input: string | string[]) {
+    if (isString(input)) {
+      const fileContent = input;
       Out.resetCounters();
       const totalTime: Timer = new Timer();
       const time: Timer = new Timer();
@@ -29,12 +29,13 @@ export class Main {
       
       try {
         // Out.println(ErrorMessages.READING + inputFile.toString());
-        inputReader = new JavaFileReader(inputFile);
+        inputReader = new JavaFileReader();
+        inputReader.setContent(<string>fileContent);
         scanner = new LexScan(inputReader);
-        scanner.setFile(inputFile);
+        // scanner.setFile(inputFile);
         parser = new LexParse(scanner);
       } catch (var18) {
-        Out.error(ErrorMessages.CANNOT_OPEN + inputFile.toString(), -1, -1);
+        // Out.error(ErrorMessages.CANNOT_OPEN + inputFile.toString(), -1, -1);
         throw new GeneratorException();
       }
       
@@ -48,8 +49,8 @@ export class Main {
         // if (Options.dot) {
         //   nfa.writeDot(Emitter.normalize("nfa.dot", (File)null));
         // }
-        
-        Out.println(ErrorMessages.NFA_STATES + nfa.numStates);
+  
+        Out.println(ErrorMessages.NFA_STATES + nfa.numStates.toString(10));
         time.start();
         const dfa = nfa.getDFA();
         time.stop();
@@ -69,21 +70,22 @@ export class Main {
         }
         
         time.start();
-        const e = new Emitter(inputFile, parser, dfa);
-        e.emit();
+        // const e = new Emitter(inputFile, parser, dfa);
+        // e.emit();
         time.stop();
         Out.time(ErrorMessages.WRITE_TOOK, time);
         totalTime.stop();
         Out.time(ErrorMessages.TOTAL_TIME, totalTime);
       } catch (var12) {
-        Out.error(var12.message, var12.line, var12.column);
+        console.log(var12.stack);
+        Out.error(var12.toString(), var12.line, var12.column);
         throw new GeneratorException();
       }
     } else {
-      const files = Main.parseOptions(input);
+      const files = Main.parseOptions([<string>input]);
       if (files.size() > 0) {
         for (let i = 0; i < files.size(); ++i) {
-          Main.generate(<File>files.elementAt(i));
+          // Main.generate(<File>files.elementAt(i));
         }
       } else {
         // new MainFrame();
@@ -222,7 +224,7 @@ export class Main {
     Out.println('Have a nice day!');
   }
   
-  public static main (argv: string[]) {
+  public static main (argv: string) {
     try {
       Main.generate(argv);
     } catch (var3) {

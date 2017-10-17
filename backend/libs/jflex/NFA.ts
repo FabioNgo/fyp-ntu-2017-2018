@@ -2,7 +2,7 @@ import {Action} from './Action';
 import {StateSet} from './StateSet';
 import {StateSetEnumerator} from './StateSetEnumerator';
 import {Out} from './Out';
-import {isNumber} from 'util';
+import {isNullOrUndefined, isNumber, isUndefined} from 'util';
 import {JavaVector} from '../JavaVector';
 import {Options} from './Options';
 import {JavaCharacter} from '../JavaCharacter';
@@ -13,9 +13,7 @@ import {RegExps} from './RegExps';
 import {IntPair} from './IntPair';
 import {Interval} from './Interval';
 import {IntCharSet} from './IntCharSet';
-import {RegExp2} from './RegExp2';
-import {RegExp} from './RegExp';
-import {RegExp1} from './RegExp1';
+import {RegExp, RegExp1, RegExp2} from './RegExp';
 import {DFA} from './DFA';
 
 export class NFA {
@@ -23,22 +21,22 @@ export class NFA {
   private static tempStateSet = new StateSet();
   table: StateSet[][];
   epsilon: StateSet[];
-  isFinal;
-  isPushback;
+  isFinal: boolean[];
+  isPushback: boolean[];
   action: Action[];
-  numStates;
-  numInput;
-  numLexStates;
-  estSize;
+  numStates: number;
+  numInput = 0;
+  numLexStates = 0;
+  estSize = 0;
   macros: Macros;
   classes: CharClasses;
   scanner: LexScan;
   regExps: RegExps;
   private live: boolean[];
-  private visited;
-  private _end;
+  private visited: boolean[];
+  private _end = 0;
   private _dfaStates: JavaVector<any>;
-  private _dfaStart;
+  private _dfaStart = 0;
   
   public constructor (numInput, estSize?, regExps?, macros?, classes?) {
     if (!regExps) {
@@ -46,13 +44,18 @@ export class NFA {
       this.numInput = numInput;
       this.estSize = estSize;
       this.numStates = 0;
-      this.epsilon = [];
-      this.action = [];
-      this.isFinal = [];
-      this.isPushback = [];
+      this.epsilon = new Array(estSize);
+      this.action = new Array(estSize);
+      this.isFinal = new Array(estSize);
+      this.isPushback = new Array(estSize);
       this.table = [];
+      for (let i = 0; i < estSize; i++) {
+        this.table[i] = [];
+      }
     } else {
-      const scanner = estSize;
+      const scanner = <LexScan>estSize;
+      this.constructor(numInput, regExps.NFASize(macros) + 2 * scanner.states.number());
+      
       this.estSize = regExps.NFASize(macros) + 2 * scanner.states.number();
       this.scanner = scanner;
       this.regExps = regExps;
@@ -113,13 +116,13 @@ export class NFA {
   }
   
   public addTransition (start, input, dest) {
-    Out.error('Adding transition (' + start + ', ' + input + ', ' + dest + ')', -1, -1);
+    // Out.debug('Adding transition (' + start + ', ' + input + ', ' + dest + ')', -1, -1);
     const maxS = Math.max(start, dest) + 1;
     if (maxS > this.numStates) {
       this.numStates = maxS;
     }
-    
-    if (this.table[start][input] != null) {
+  
+    if (!isUndefined(this.table[start][input])) {
       this.table[start][input].addState(dest);
     } else {
       this.table[start][input] = new StateSet(dest);
@@ -132,11 +135,11 @@ export class NFA {
     if (max > this.numStates) {
       this.numStates = max;
     }
-    
-    if (this.epsilon[start] != null) {
+  
+    if (!isNullOrUndefined(this.epsilon[start])) {
       this.epsilon[start].addState(dest);
     } else {
-      this.epsilon[start] = new StateSet(dest);
+      this.epsilon[start] = new StateSet(this.estSize, dest);
     }
     
   }
@@ -186,7 +189,7 @@ export class NFA {
         
         if (newState.containsElements()) {
           const nextDFAState = dfaStates.get(newState);
-          if (nextDFAState != null) {
+          if (!isUndefined(nextDFAState)) {
             dfa.addTransition(currentDFAState, input, nextDFAState.intValue());
           } else {
             if (Options.progress) {
@@ -272,13 +275,13 @@ export class NFA {
   
   private getAction (set) {
     NFA.states.reset(set);
-    let maxAction = null;
+    let maxAction: Action;
     Out.println('Determining action of : ' + set);
     
     while (NFA.states.hasMoreElements()) {
       const currentAction = this.action[NFA.states.nextElement()];
-      if (currentAction != null) {
-        if (maxAction == null) {
+      if (!isUndefined(currentAction)) {
+        if (isUndefined(maxAction)) {
           maxAction = currentAction;
         } else {
           maxAction = maxAction.getHigherPriority(currentAction);
@@ -293,7 +296,7 @@ export class NFA {
     if (startState instanceof StateSet) {
       const startStates = startState;
       const result = new StateSet(this.numStates);
-      if (startStates != null) {
+      if (!isUndefined(startStates)) {
         NFA.states.reset(startStates);
         
         while (NFA.states.hasMoreElements()) {
@@ -305,7 +308,7 @@ export class NFA {
     }
     if (isNumber(startState)) {
       const notvisited = NFA.tempStateSet;
-      const closure = new StateSet(startState);
+      const closure = new StateSet(this.numStates, startState);
       notvisited.clear();
       notvisited.addState(startState);
       
@@ -354,7 +357,7 @@ export class NFA {
         this.addTransition(start, upper, end);
       }
     } else {
-      this.addTransition(start, this.classes.getClassCode(letter), end);
+      this.addTransition(start, this.classes.getClassCode(new JavaCharacter(letter)), end);
     }
     
   }
@@ -363,7 +366,7 @@ export class NFA {
     const start = this.numStates;
     
     let i;
-    for (i = 0; i < letters.length(); ++i) {
+    for (i = 0; i < letters.length; ++i) {
       if (caseless) {
         const c = letters.charAt(i);
         const lower = this.classes.getClassCode(JavaCharacter.toLowerCase(c));
@@ -373,7 +376,7 @@ export class NFA {
           this.addTransition(i + start, upper, i + start + 1);
         }
       } else {
-        this.addTransition(i + start, this.classes.getClassCode(letters.charAt(i)), i + start + 1);
+        this.addTransition(i + start, this.classes.getClassCode(new JavaCharacter(letters.charAt(i))), i + start + 1);
       }
     }
     
@@ -456,13 +459,13 @@ export class NFA {
       }
       
       for (let i = 0; i < this.numInput; ++i) {
-        if (this.table[currentDFAState][i] == null) {
+        if (isUndefined(this.table[currentDFAState][i])) {
           this.addTransition(currentDFAState, i, error);
         }
       }
     }
-    
-    if (this.live == null || this.live.length < this.numStates) {
+  
+    if (isUndefined(this.live) || this.live.length < this.numStates) {
       this.live = [];
       this.visited = [];
     }
@@ -633,6 +636,7 @@ export class NFA {
           case 41:
             return this.insertNFA(this.macros.getDefinition(<string>(<RegExp1>regExp).content));
           case 44:
+            r = <RegExp2> regExp;
             nfa1 = this.insertNFA(r.r1);
             nfa2 = this.insertNFA(r.r2);
             this.addEpsilonTransition(nfa1.end, nfa2.start);

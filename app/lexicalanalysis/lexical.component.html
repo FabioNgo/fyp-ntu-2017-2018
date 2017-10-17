@@ -1,6 +1,14 @@
 <!--The content below is only a placeholder and can be replaced.-->
 
-<div style="">
+<div style="display: block; min-width: 100%">
   {{title}}
+  <form [formGroup]="jflexInputGroup">
+    <mat-form-field style="display: block; min-width: 100%">
+      <textarea matTextareaAutosize required [matAutosizeMinRows]="5" formControlName="jflexInputContent" matInput
+                placeholder="JflexInputContent"></textarea>
+    </mat-form-field>
+
+  </form>
+  <button mat-raised-button (click)="generate()">Generate</button>
 </div>
 

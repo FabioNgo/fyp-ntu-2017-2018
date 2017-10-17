@@ -9,7 +9,7 @@ export class IntCharSet {
   pos: number;
   
   constructor (input?: JavaVector<Interval> | JavaCharacter | Interval) {
-    if (input) {
+    if (!input) {
       this.intervals = new JavaVector<Interval>();
       return;
     }
@@ -24,8 +24,8 @@ export class IntCharSet {
     }
     if (input instanceof JavaVector) {
       const chars = input;
-      const size = input.length;
-      this.intervals = new JavaVector<Interval>(size);
+      const size = input.size();
+      this.intervals = new JavaVector<Interval>();
       for (let i = 0; i < size; ++i) {
         this.add(<Interval>chars.elementAt(i));
       }
@@ -45,6 +45,7 @@ export class IntCharSet {
         }
         return this;
       }
+    }
       if (input instanceof Interval) {
         let length = this.intervals.size();
         const interval = input;
@@ -88,9 +89,9 @@ export class IntCharSet {
         this.intervals.addElement(new Interval(interval.start, interval.end));
       }
       if (input instanceof JavaCharacter) {
-        const length = this.intervals.size();
+        const size = this.intervals.size();
         const c = input;
-        for (let i = 0; i < length; ++i) {
+        for (let i = 0; i < size; ++i) {
           const elem = <Interval>this.intervals.elementAt(i);
           if (elem.end.code + 1 >= c.code) {
             if (elem.contains(c)) {
@@ -123,7 +124,7 @@ export class IntCharSet {
         
         this.intervals.addElement(new Interval(c, c));
       }
-    }
+  
   }
   
   public contains (input): boolean {
@@ -140,8 +141,8 @@ export class IntCharSet {
       const set = input;
       let i = 0;
       let j = 0;
-      
-      while (j < set.intervals.length) {
+  
+      while (j < set.intervals.size()) {
         const x = <Interval>this.intervals.elementAt(i);
         const y = <Interval>this.intervals.elementAt(j);
         if (x.contains(y)) {
@@ -165,10 +166,10 @@ export class IntCharSet {
   equals (o: JavaObject) {
     if (o instanceof IntCharSet) {
       const set = <IntCharSet>o;
-      if (this.intervals.length !== set.intervals.length) {
+      if (this.intervals.size() !== set.intervals.size()) {
         return false;
       } else {
-        for (let i = 0; i < this.intervals.length; ++i) {
+        for (let i = 0; i < this.intervals.size(); ++i) {
           if (!this.intervals.elementAt(i).equals(set.intervals.elementAt(i))) {
             return false;
           }
@@ -194,8 +195,8 @@ export class IntCharSet {
     const result = new IntCharSet();
     let i = 0;
     let j = 0;
-    const size = this.intervals.length;
-    const setSize = set.intervals.length;
+    const size = this.intervals.size();
+    const setSize = set.intervals.size();
     
     while (i < size && j < setSize) {
       const x = <Interval>this.intervals.elementAt(i);
@@ -222,9 +223,9 @@ export class IntCharSet {
   sub (set: IntCharSet) {
     let i = 0;
     let j = 0;
-    const setSize = set.intervals.length;
-    
-    while (i < this.intervals.length && j < setSize) {
+    const setSize = set.intervals.size();
+  
+    while (i < this.intervals.size() && j < setSize) {
       const x = <Interval>this.intervals.elementAt(i);
       const y = <Interval>set.intervals.elementAt(j);
       if (x.end.code < y.start.code) {
@@ -317,7 +318,7 @@ export class IntCharSet {
     let start = 0;
     let end = this.intervals.size() - 1;
     while (start <= end) {
-      const check = (start + end) / 2;
+      const check = Math.floor((start + end) / 2);
       const i = <Interval>this.intervals.elementAt(check);
       if (start === end) {
         return i.contains(c) ? start : -1;

@@ -1,19 +1,17 @@
-import {RegExp1} from './RegExp1';
-import {RegExp2} from './RegExp2';
-import {RegExp} from './RegExp';
+import {RegExp, RegExp1, RegExp2} from './RegExp';
 import {ErrorMessages} from './ErrorMessages';
 
 export class Macros {
-  macros: Map<string, RegExp>;
-  private used: Map<string, boolean>;
+  macros: Map<string, RegExp> = new Map<string, RegExp>();
+  private used: Map<string, boolean> = new Map<string, boolean>();
   
   public insert (name: string, definition: RegExp) {
     this.used.set(name, false);
-    return this.macros.set(name, definition) == null;
+    return this.macros.set(name, definition);
   }
   
   public markUsed (name: string) {
-    return this.used.set(name, true) != null;
+    return this.used.set(name, true);
   }
   
   public isUsed (name: string): boolean {

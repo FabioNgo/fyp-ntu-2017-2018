@@ -2,6 +2,7 @@ import {Scanner} from './Scanner';
 import {Symbol} from './Symbol';
 import {JavaCharacter} from '../JavaCharacter';
 import {VirtualParseStack} from './VirtualParseStack';
+import {JavaShort} from '../JavaShort';
 
 export abstract class LRParser {
   protected static readonly error_sync_size = 3;
@@ -16,19 +17,19 @@ export abstract class LRParser {
   protected lookahead;
   protected lookahead_pos;
   protected boolean;
-  private _scanner;
+  public scanner;
   
   public constructor (s?: Scanner) {
     this._done_parsing = false;
     this.stack = [];
     if (s) {
-      this._scanner = s;
+      this.scanner = s;
     }
     
   }
   
   protected static unpackFromStrings (sa: string): number[][] {
-    let sb = '';
+    let sb = sa[0];
     
     for (let i = 1; i < sa.length; ++i) {
       sb += (sa[i]);
@@ -44,7 +45,7 @@ export abstract class LRParser {
       n += 2;
       result[i] = [];
       for (let j = 0; j < size2; ++j) {
-        result[i][j] = (JavaCharacter.toCode(sb.charAt(n++)) - 2);
+        result[i][j] = JavaShort.toSignedShort((JavaCharacter.toCode(sb.charAt(n++)) - 2));
       }
     }
     
@@ -70,11 +71,11 @@ export abstract class LRParser {
   }
   
   public setScanner (s: Scanner) {
-    this._scanner = s;
+    this.scanner = s;
   }
   
   public getScanner () {
-    return this._scanner;
+    return this.scanner;
   }
   
   public abstract do_action (var1: number, var2: LRParser, stack: [number], var4: number): Symbol;
@@ -123,7 +124,7 @@ export abstract class LRParser {
     this.init_actions();
     this.user_init();
     this.cur_token = this.scan();
-    this.stack.removeAllElements();
+    this.stack = [];
     this.stack.push(new Symbol(0, -1, -1, null, this.start_state()));
     this.tos = 0;
     this._done_parsing = false;
@@ -132,8 +133,8 @@ export abstract class LRParser {
       if (this.cur_token.used_by_parser) {
         throw new Error('Symbol recycling detected (fix your scanner).');
       }
-      
-      let act = this.get_action((<Symbol>this.stack.peek()).parse_state, this.cur_token.sym);
+  
+      let act = this.get_action((<Symbol>this.stack[this.stack.length - 1]).parse_state, this.cur_token.sym);
       if (act > 0) {
         this.cur_token.parse_state = act - 1;
         this.cur_token.used_by_parser = true;
@@ -159,8 +160,8 @@ export abstract class LRParser {
           this.stack.pop();
           --this.tos;
         }
-        
-        act = this.get_reduce((<Symbol>this.stack.peek()).parse_state, lhs_sym_num);
+  
+        act = this.get_reduce((<Symbol>this.stack[this.stack.length - 1]).parse_state, lhs_sym_num);
         lhs_sym.parse_state = act;
         lhs_sym.used_by_parser = true;
         this.stack.push(lhs_sym);
@@ -341,10 +342,10 @@ export abstract class LRParser {
       return 0;
     } else {
       let first = 0;
-      let last = (row.length - 1) / 2 - 1;
+      let last = Math.floor((row.length - 1) / 2 - 1);
       
       while (first <= last) {
-        probe = (first + last) / 2;
+        probe = Math.floor((first + last) / 2);
         if (sym === row[probe * 2]) {
           return row[probe * 2 + 1];
         }

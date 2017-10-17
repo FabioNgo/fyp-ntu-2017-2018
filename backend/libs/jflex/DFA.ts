@@ -5,6 +5,7 @@ import {LexScan} from './LexScan';
 import {LexParse} from './LexParse';
 import {ErrorMessages} from './ErrorMessages';
 import {StatePairList} from './StatePairList';
+import {isUndefined} from 'util';
 
 
 export class DFA {
@@ -18,7 +19,7 @@ export class DFA {
   lexState: number[];
   numStates: number;
   numInput: number;
-  usedActions: Map<any, any>;
+  usedActions: Map<any, any> = new Map<any, any>();
   
   public constructor (numLexStates, numInp) {
     this.numInput = numInp;
@@ -32,6 +33,7 @@ export class DFA {
     this.numStates = 0;
     
     for (let i = 0; i < statesNeeded; ++i) {
+      this.table[i] = [];
       for (let j = 0; j < this.numInput; ++j) {
         this.table[i][j] = -1;
       }
@@ -46,7 +48,7 @@ export class DFA {
   
   public setAction (state, stateAction) {
     this.action[state] = stateAction;
-    if (stateAction !== null) {
+    if (!isUndefined(stateAction)) {
       this.isLookEnd[state] = stateAction.isLookAction();
       this.usedActions.set(stateAction, stateAction);
     }
@@ -66,7 +68,14 @@ export class DFA {
     if (max > this.numStates) {
       this.numStates = max;
     }
-    
+  
+    if (isUndefined(this.table[start])) {
+      console.log(start + ' ' + input + ' ' + dest + ' ');
+      this.table[start] = [];
+      for (let i = 0; i < this.numInput; i++) {
+        this.table[start][i] = -1;
+      }
+    }
     this.table[start][input] = dest;
   }
   
@@ -271,7 +280,7 @@ export class DFA {
         l_forward[anchorL] = l_forward[last];
         l_backward[l_forward[anchorL]] = anchorL;
         l_forward[last] = 0;
-        const B_j = b0 + last / this.numInput;
+        const B_j = b0 + Math.floor(last / this.numInput);
         const a = last % this.numInput;
         let numD = 0;
         
@@ -462,7 +471,7 @@ export class DFA {
     let bc = l_f[anchor];
     
     while (bc !== anchor) {
-      const b = bc / this.numInput;
+      const b = Math.floor(bc / this.numInput);
       const c = bc % this.numInput;
       l = l + '(' + b + ',' + c + ')';
       const old_bc = bc;
@@ -527,7 +536,7 @@ export class DFA {
                 
                 if ((p >= 0 || q >= 0) && p !== q && (p === -1 || q === -1 || !equiv[p][q])) {
                   equiv[i][j] = false;
-                  if (list[i][j] !== null) {
+                  if (!isUndefined(list[i][j])) {
                     list[i][j].markAll(list, equiv);
                   }
                 }
@@ -545,7 +554,7 @@ export class DFA {
                 }
                 
                 if (p !== q && p >= 0 && q >= 0) {
-                  if (list[p][q] === null) {
+                  if (isUndefined(list[p][q])) {
                     list[p][q] = new StatePairList();
                   }
                   

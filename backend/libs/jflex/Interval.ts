@@ -6,16 +6,18 @@ export class Interval {
   end: JavaCharacter;
   
   constructor (start: JavaCharacter, end: JavaCharacter) {
-    this.start = start;
-    this.end = end;
+    this.start = new JavaCharacter(start.code);
+    this.end = new JavaCharacter(end.code);
   }
   
   public contains (other): boolean {
     if (other instanceof Interval) {
-      return this.start <= other.start && this.end >= other.end;
+      const otherInterval: Interval = <Interval>other;
+      return this.start.code <= otherInterval.start.code && this.end.code >= otherInterval.end.code;
     }
     if (other instanceof JavaCharacter) {
-      return this.start <= other && this.end >= other;
+      const otherChar: JavaCharacter = <JavaCharacter>other;
+      return this.start.code <= otherChar.code && this.end.code >= otherChar.code;
     }
     
   }

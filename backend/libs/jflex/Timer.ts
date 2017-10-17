@@ -24,11 +24,11 @@ export class Timer {
   
   public toString () {
     const diff = this.diff();
-    const millis = diff % 1000;
-    const secs = diff / 1000 % 60;
-    const mins = diff / 60000 % 60;
-    const hs = diff / 3600000 % 24;
-    const days = diff / 86400000;
+    const millis = Math.floor(diff % 1000);
+    const secs = Math.floor(diff / 1000 % 60);
+    const mins = Math.floor(diff / 60000 % 60);
+    const hs = Math.floor(diff / 3600000 % 24);
+    const days = Math.floor(diff / 86400000);
     if (days > 0) {
       return days + 'd ' + hs + 'h ' + mins + 'm ' + secs + 's ' + millis + 'ms';
     } else if (hs > 0) {

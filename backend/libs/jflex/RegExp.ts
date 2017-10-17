@@ -1,6 +1,6 @@
 import {Macros} from './Macros';
-import {RegExp2} from './RegExp2';
-import {RegExp1} from './RegExp1';
+// import {RegExp2} from './RegExp2';
+// import {RegExp1} from './RegExp1';
 
 export class RegExp {
   public type: number;
@@ -89,5 +89,42 @@ export class RegExp {
       case 44:
         return binary.r1.size(macros) + binary.r2.size(macros);
     }
+  }
+}
+
+export class RegExp1 extends RegExp {
+  content: any;
+  
+  constructor (type: number, content) {
+    super(type);
+    this.content = content;
+  }
+  
+  public print (tab: string) {
+    return this.content instanceof RegExp ? tab + 'type = ' + this.type + tab + 'content :' + (<RegExp> this.content).print(tab + '  ') : tab + 'type = ' + this.type + tab + 'content :' + tab + '  ' + this.content;
+  }
+  
+  public toString () {
+    return this.print('');
+  }
+}
+
+export class RegExp2 extends RegExp {
+  
+  r1;
+  r2;
+  
+  public constructor (type, r1, r2) {
+    super(type);
+    this.r1 = r1;
+    this.r2 = r2;
+  }
+  
+  public print (tab) {
+    return tab + 'type = ' + this.type + tab + 'child 1 :' + this.r1.print(tab + '  ') + tab + 'child 2 :' + this.r2.print(tab + '  ');
+  }
+  
+  public toString () {
+    return this.print('');
   }
 }

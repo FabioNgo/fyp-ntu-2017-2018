@@ -6,6 +6,9 @@ export class LexicalStates {
   numStates: number;
   
   public constructor () {
+    this.states = new Map<string, number>();
+    this.inclusive = new JavaVector<number>();
+    this.numStates = 0;
   }
   
   public insert (name: string, is_inclusive: boolean) {
@@ -23,7 +26,7 @@ export class LexicalStates {
     return this.states.get(name);
   }
   
-  public number () {
+  public number (): number {
     return this.numStates;
   }
   

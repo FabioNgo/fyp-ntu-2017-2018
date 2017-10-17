@@ -5,19 +5,53 @@
 
 export class JavaFileReader extends FileReader {
   file: File;
+  content: string;
+  currentPos = 0;
   
-  constructor (file: File) {
+  constructor (file?: File) {
     super();
-    this.file = file;
-    this.readAsText(file);
+    if (file) {
+      
+      this.file = file;
+      this.readAsText(file);
+      this.content = this.result;
+    }
+    
   }
   
-  public read (off: number, len: number) {
-    return <string>this.result.substr(off, len);
+  public read (off: number, len: number): [number, string] {
+    let numRead = 0;
+    if (off + len > this.content.length) {
+      numRead = this.content.length - this.currentPos;
+      
+    } else {
+      numRead = (off + len ) - this.currentPos;
+    }
+    
+    if (numRead > 0) {
+      this.currentPos = this.currentPos + numRead;
+    } else {
+      if (this.currentPos === this.content.length) {
+        numRead = -1;
+      } else {
+        numRead = 0;
+      }
+    }
+    
+    
+    return [numRead, <string>this.content.substr(off, len)];
+  }
+  
+  public reset () {
+    this.currentPos = 0;
   }
   
   public getContent () {
     return this.result;
+  }
+  
+  public setContent (content: string) {
+    this.content = content;
   }
   
   public close () {

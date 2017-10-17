@@ -18,7 +18,7 @@ export class JavaVector<T extends any> implements JavaObject {
       if (input instanceof Array) {
         this.data = input.copyWithin(0, 0);
       }
-      this.data = new Array<T>(10);
+      this.data = [];
     }
     
   }
@@ -51,7 +51,7 @@ export class JavaVector<T extends any> implements JavaObject {
   }
   
   public addElement (obj: T) {
-    this.data.push(obj);
+    this.data[this.data.length] = obj;
   }
   
   public hashCode () {

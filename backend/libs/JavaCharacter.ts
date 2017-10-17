@@ -4,8 +4,9 @@
 // The list of which env maps to which file can be found in `.angular-cli.json`.
 
 import {JavaObject} from './JavaObject';
-import {isAsciiLetter, isDigit} from '@angular/compiler/src/chars';
+// import {isAsciiLetter, isDigit} from '@angular/compiler/src/chars';
 import {isNumber, isString} from 'util';
+import {isAsciiLetter, isDigit} from 'codelyzer/angular/styles/chars';
 
 export class JavaCharacter extends String implements JavaObject {
   
@@ -111,7 +112,7 @@ export class JavaCharacter extends String implements JavaObject {
   }
   
   toString () {
-    return this.value;
+    return this.getClass() + ':=' + this.value;
   }
   
 }

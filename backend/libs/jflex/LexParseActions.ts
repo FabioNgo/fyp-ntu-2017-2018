@@ -11,9 +11,7 @@ import {Out} from './Out';
 import {isLowerCase, isUpperCase} from 'tslint/lib/utils';
 import {JavaVector} from '../JavaVector';
 import {Interval} from './Interval';
-import {RegExp1} from './RegExp1';
-import {RegExp2} from './RegExp2';
-import {RegExp} from './RegExp';
+import {RegExp, RegExp1, RegExp2} from './RegExp';
 import {Symbol} from '../java_cup.runtime/Symbol';
 import {NFA} from './NFA';
 import {Options} from './Options';
@@ -22,12 +20,12 @@ import {Action} from './Action';
 
 export class LexParseActions {
   scanner: LexScan;
-  charClasses: CharClasses;
-  regExps: RegExps;
-  macros: Macros;
+  charClasses: CharClasses = new CharClasses(127);
+  regExps: RegExps = new RegExps();
+  macros: Macros = new Macros();
   stateNumber: number;
-  t: Timer;
-  eofActions: EOFActions;
+  t: Timer = new Timer();
+  eofActions: EOFActions = new EOFActions();
   private readonly parser: LexParse;
   
   constructor (parser: LexParse) {
@@ -60,12 +58,12 @@ export class LexParseActions {
   public do_action (act_num, parser, stack: any[], top) {
     let result: Symbol;
     let RESULT;
-    let closeleft;
-    let num;
+    let closeleft = 0;
+    let num = 0;
     let c;
-    let i;
-    let closeright;
-    let n2right;
+    let i = 0;
+    let closeright = 0;
+    let n2right = 0;
     let str = '';
     // let RESULT2: Interval;
     let list: JavaVector<any>;
@@ -102,8 +100,8 @@ export class LexParseActions {
         unused.forEach((value: string) => {
           Out.warning('Macro "' + value + '" has been declared but never used.', -1, -1);
         });
-        
-        SemCheck.check(this.regExps, this.macros, JavaCharacter.toChar(this.charClasses.getMaxCharCode()), this.scanner.file);
+  
+        SemCheck.check(this.regExps, this.macros, JavaCharacter.toChar(this.charClasses.getMaxCharCode()));
         this.regExps.checkActions();
         Out.print('Constructing NFA : ');
         this.t.start();
@@ -328,8 +326,8 @@ export class LexParseActions {
           result = new Symbol(12, (<Symbol>stack[top - 2]).left, (<Symbol>stack[top - 0]).right, list);
           return result;
         }
-        
-        throw new Error(ErrorMessages.LEXSTATE_UNDECL + closeleft + ' ' + num);
+  
+        throw new Error(ErrorMessages.LEXSTATE_UNDECL + closeleft.toString() + ' ' + num);
       case 26:
         RESULT = null;
         closeleft = (<Symbol>stack[top - 0]).left;
@@ -342,8 +340,8 @@ export class LexParseActions {
           result = new Symbol(12, (<Symbol>stack[top - 0]).left, (<Symbol>stack[top - 0]).right, list);
           return result;
         }
-        
-        throw new Error(ErrorMessages.LEXSTATE_UNDECL + closeleft + ' ' + num);
+  
+        throw new Error(ErrorMessages.LEXSTATE_UNDECL + closeleft.toString() + ' ' + num);
       case 27:
         RESULT = null;
         closeleft = (<Symbol>stack[top - 0]).left;
@@ -481,7 +479,7 @@ export class LexParseActions {
         num = (<Symbol>stack[top - 0]).right;
         str = <string>(<Symbol>stack[top - 0]).value;
         if (!this.scanner.macroDefinition && !this.macros.markUsed(str)) {
-          throw new Error(ErrorMessages.MACRO_UNDECL + closeleft + num);
+          throw new Error(ErrorMessages.MACRO_UNDECL + closeleft.toString() + num);
         }
         
         RESULT = new RegExp1(41, str);
@@ -544,10 +542,10 @@ export class LexParseActions {
         
         try {
           if (this.scanner.caseless) {
-            this.charClasses.makeClass(c.charValue(), true);
+            this.charClasses.makeClass(c, true);
             RESULT = new RegExp1(46, c);
           } else {
-            this.charClasses.makeClass(c.charValue(), false);
+            this.charClasses.makeClass(c, false);
             RESULT = new RegExp1(39, c);
           }
         } catch (var23) {
@@ -755,7 +753,7 @@ export class LexParseActions {
         closeleft = (<Symbol>stack[top - 0]).left;
         num = (<Symbol>stack[top - 0]).right;
         c = <JavaCharacter>(<Symbol>stack[top - 0]).value;
-        RESULT = new Interval(c.charValue(), c.charValue());
+        RESULT = new Interval(c, c);
         result = new Symbol(11, (<Symbol>stack[top - 0]).left, (<Symbol>stack[top - 0]).right, RESULT);
         return result;
       case 66:

@@ -2,9 +2,7 @@ import {Macros} from './Macros';
 import {RegExps} from './RegExps';
 import {Out} from './Out';
 import {ErrorMessages} from './ErrorMessages';
-import {RegExp} from './RegExp';
-import {RegExp2} from './RegExp2';
-import {RegExp1} from './RegExp1';
+import {RegExp, RegExp1, RegExp2} from './RegExp';
 import {IntCharSet} from './IntCharSet';
 import {JavaCharacter} from '../JavaCharacter';
 import {Interval} from './Interval';
@@ -17,7 +15,7 @@ export class SemCheck {
   public constructor () {
   }
   
-  public static check (rs: RegExps, m: Macros, max: string, f: File) {
+  public static check (rs: RegExps, m: Macros, max: string) {
     SemCheck.macros = m;
     SemCheck.maxChar = max;
     let errors = false;

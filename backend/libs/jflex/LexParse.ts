@@ -14,6 +14,7 @@ export class LexParse extends LRParser {
   
   public constructor (s?) {
     super(s);
+    // this.scanner = s;
   }
   
   public production_table () {
@@ -66,7 +67,7 @@ export class LexParse extends LRParser {
       if (s.sym === 0) {
         console.log(ErrorMessages.UNEXPECTED_EOF);
       } else {
-        console.log(this.scanner.file, ErrorMessages.SYNTAX_ERROR, s.left, s.right);
+        // console.log(this.scanner.file, ErrorMessages.SYNTAX_ERROR, s.left, s.right);
       }
     } else {
       console.log(ErrorMessages.UNKNOWN_SYNTAX);

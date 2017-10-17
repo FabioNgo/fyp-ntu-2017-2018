@@ -6,12 +6,12 @@ import {Macros} from './Macros';
 import {LexicalStates} from './LexicalStates';
 
 export class RegExps {
-  lines: JavaVector<number>;
-  states: JavaVector<JavaVector<number>>;
-  regExps: JavaVector<RegExp>;
-  actions: JavaVector<Action>;
-  BOL: JavaVector<boolean>;
-  look: JavaVector<RegExp>;
+  lines: JavaVector<any> = new JavaVector<any>();
+  states: JavaVector<any> = new JavaVector<any>();
+  regExps: JavaVector<any> = new JavaVector<any>();
+  actions: JavaVector<any> = new JavaVector<any>();
+  BOL: JavaVector<any> = new JavaVector<any>();
+  look: JavaVector<any> = new JavaVector<any>();
   
   public constructor () {
   }

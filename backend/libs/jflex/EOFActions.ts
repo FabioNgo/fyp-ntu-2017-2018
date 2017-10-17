@@ -2,7 +2,7 @@ import {Action} from './Action';
 import {JavaVector} from '../JavaVector';
 
 export class EOFActions {
-  private actions: Map<number, Action>;
+  private actions: Map<any, any> = new Map<any, any>();
   private defaultAction: Action;
   private numLexStates;
   
