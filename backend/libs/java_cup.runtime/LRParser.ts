@@ -342,7 +342,7 @@ export abstract class LRParser {
       return 0;
     } else {
       let first = 0;
-      let last = Math.floor((row.length - 1) / 2 - 1);
+      let last = Math.floor((row.length - 1) / 2) - 1;
       
       while (first <= last) {
         probe = Math.floor((first + last) / 2);

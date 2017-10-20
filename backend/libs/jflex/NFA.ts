@@ -15,6 +15,7 @@ import {Interval} from './Interval';
 import {IntCharSet} from './IntCharSet';
 import {RegExp, RegExp1, RegExp2} from './RegExp';
 import {DFA} from './DFA';
+import {ObjectKeyMap} from '../ObjectKeyMap';
 
 export class NFA {
   private static states = new StateSetEnumerator();
@@ -125,7 +126,7 @@ export class NFA {
     if (!isUndefined(this.table[start][input])) {
       this.table[start][input].addState(dest);
     } else {
-      this.table[start][input] = new StateSet(dest);
+      this.table[start][input] = new StateSet(this.estSize, dest);
     }
     
   }
@@ -145,7 +146,7 @@ export class NFA {
   }
   
   public getDFA () {
-    const dfaStates = new Map<StateSet, any>();
+    const dfaStates = new ObjectKeyMap<StateSet, any>();
     const dfaVector = new JavaVector<any>();
     const dfa = new DFA(2 * this.numLexStates, this.numInput);
     let numDFAStates = 0;
@@ -155,6 +156,7 @@ export class NFA {
     let newState;
     for (let i = 0; i < 2 * this.numLexStates; ++i) {
       newState = this.epsilon[i];
+      const debug = 'NewStates: ' + newState.toString();
       dfaStates.set(newState, numDFAStates);
       dfaVector.addElement(newState);
       dfa.setLexState(i, numDFAStates);
@@ -166,7 +168,7 @@ export class NFA {
     
     --numDFAStates;
     let currentDFAState = 0;
-    const tempStateSet = NFA.tempStateSet;
+    let tempStateSet = NFA.tempStateSet;
     const states = NFA.states;
     
     for (newState = new StateSet(this.numStates); currentDFAState <= numDFAStates; ++currentDFAState) {
@@ -182,28 +184,41 @@ export class NFA {
         
         newState.copy(tempStateSet);
         states.reset(tempStateSet);
-        
+        const newState0 = newState.toString();
         while (states.hasMoreElements()) {
+  
           newState.add(this.epsilon[states.nextElement()]);
+  
+  
         }
+        const newState1 = newState.toString();
+        let a = 0;
         
         if (newState.containsElements()) {
+  
           const nextDFAState = dfaStates.get(newState);
+  
+          // const nextDFAState1 =  isUndefined(nextDFAState) ? 'undefined' : nextDFAState.toString();
+          // const tempState = tempStateSet.toString();
           if (!isUndefined(nextDFAState)) {
-            dfa.addTransition(currentDFAState, input, nextDFAState.intValue());
+            dfa.addTransition(currentDFAState, input, nextDFAState);
           } else {
             if (Options.progress) {
               Out.print('.');
             }
             
             ++numDFAStates;
+            const newState1 = newState.toString();
             const storeState = new StateSet(newState);
+            // ;
             dfaStates.set(storeState, numDFAStates);
             dfaVector.addElement(storeState);
             dfa.addTransition(currentDFAState, input, numDFAStates);
             dfa.setFinal(numDFAStates, this.containsFinal(storeState));
             dfa.setPushback(numDFAStates, this.containsPushback(storeState));
             dfa.setAction(numDFAStates, this.getAction(storeState));
+  
+            const debug2 = 'UsedAction: ' + dfa.usedActions.toString();
           }
         }
       }
@@ -274,12 +289,14 @@ export class NFA {
   }
   
   private getAction (set) {
+    const debug = 'set: ' + set.toString();
     NFA.states.reset(set);
     let maxAction: Action;
-    Out.println('Determining action of : ' + set);
+    // Out.println('Determining action of : ' + set);
     
     while (NFA.states.hasMoreElements()) {
       const currentAction = this.action[NFA.states.nextElement()];
+      const debug2 = 'states: ' + NFA.states.toString();
       if (!isUndefined(currentAction)) {
         if (isUndefined(maxAction)) {
           maxAction = currentAction;

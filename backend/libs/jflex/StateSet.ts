@@ -1,13 +1,14 @@
 import {StateSetEnumerator} from './StateSetEnumerator';
 import {isNullOrUndefined, isNumber, isUndefined} from 'util';
 import {JavaLong} from '../JavaLong';
+import {JavaObject} from '../JavaObject';
 
-export class StateSet {
+export class StateSet implements JavaObject {
   public static readonly EMPTY = new StateSet();
   static readonly BITS = 6;
   static readonly MASK = 63;
   bits: JavaLong[];
-  
+
   public constructor (sizeOrStateSet?: number | StateSet, state?) {
     if (isUndefined(sizeOrStateSet)) {
       this.constructor(256);
@@ -26,11 +27,13 @@ export class StateSet {
       return;
     }
     if (sizeOrStateSet instanceof StateSet) {
-      
-      const set = <StateSet>sizeOrStateSet;
-      this.bits = new Array(set.bits.length);
-      this.bits = set.bits.copyWithin(0, 0);
+  
+      this.copy(sizeOrStateSet);
     }
+  }
+  
+  getClass (): string {
+    return 'StateSet';
   }
   
   public resize (size: number) {
@@ -76,7 +79,7 @@ export class StateSet {
       // return (this.bits[index] & 1 << (state & 63)) !== 0;
       const _1 = JavaLong.getOne();
       const rhs = _1.shiftLeft(state & 63);
-      return JavaLong.bitOr(this.bits[index], rhs).toNumber() !== 0;
+      return JavaLong.bitOr(this.bits[index], rhs).isNotZero();
     }
   }
   
@@ -85,10 +88,10 @@ export class StateSet {
     let o = 0;
     
     let m;
-    for (m = 1; this.bits[i].toNumber() === 0; ++i) {
+    for (m = 1; this.bits[i].isZero(); ++i) {
     }
     m = JavaLong.fromNumber(m);
-    while ((JavaLong.bitAnd(this.bits[i], m)).toNumber() === 0) {
+    while ((JavaLong.bitAnd(this.bits[i], m)).isZero()) {
       // m <<= 1;
       m = m.shiftLeft(1);
       ++o;
@@ -130,6 +133,7 @@ export class StateSet {
     }
   }
   
+  
   public add (set: StateSet) {
     if (!isNullOrUndefined(set)) {
       const sbits = set.bits;
@@ -156,13 +160,13 @@ export class StateSet {
     let i;
     for (i = 0; i < min; ++i) {
       // if ((this.bits[i] & set.bits[i]) != set.bits[i]) {
-      if (JavaLong.bitAnd(this.bits[i], set.bits[i]).toNumber() !== set.bits[i].toNumber()) {
+      if (JavaLong.bitAnd(this.bits[i], set.bits[i]).notEquals(set.bits[i])) {
         return false;
       }
     }
     
     for (i = min; i < set.bits.length; ++i) {
-      if (set.bits[i].toNumber() !== 0) {
+      if (set.bits[i].isNotZero()) {
         return false;
       }
     }
@@ -177,7 +181,7 @@ export class StateSet {
     const l2 = set.bits.length;
     if (l1 <= l2) {
       while (i < l1) {
-        if (this.bits[i].toNumber() !== set.bits[i].toNumber()) {
+        if (this.bits[i].notEquals(set.bits[i])) {
           return false;
         }
         
@@ -188,12 +192,12 @@ export class StateSet {
         if (i >= l2) {
           return true;
         }
-      } while (set.bits[i++].toNumber() === 0);
+      } while (set.bits[i++].isZero());
       
       return false;
     } else {
       while (i < l2) {
-        if (this.bits[i].toNumber() !== set.bits[i].toNumber()) {
+        if (this.bits[i].notEquals(set.bits[i])) {
           return false;
         }
         
@@ -201,7 +205,7 @@ export class StateSet {
       }
       
       while (i < l1) {
-        if (this.bits[i++].toNumber() !== 0) {
+        if (this.bits[i++].isNotZero()) {
           return false;
         }
       }
@@ -210,20 +214,21 @@ export class StateSet {
     }
   }
   
-  public hashCode () {
-    // let h = 1234;
-    // const _bits = this.bits;
-    //
-    // let i;
-    // for (i = this.bits.length - 1; i >= 0 && _bits[i].getValue() === 0; --i) {
-    //
-    // }
-    //
-    // while (i >= 0) {
-    //   h ^= _bits[i--] * i;
-    // }
-    //
-    // return (h >> 32 ^ h);
+  public hashCode (): number {
+    
+    let h = 1234;
+    const _bits = this.bits;
+    
+    let i;
+    for (i = this.bits.length - 1; i >= 0 && _bits[i].isZero(); --i) {
+    
+    }
+    
+    while (i >= 0) {
+      h ^= _bits[i--].toNumber() * i;
+    }
+    
+    return (h >> 32 ^ h);
   }
   
   public states (): StateSetEnumerator {
@@ -232,7 +237,7 @@ export class StateSet {
   
   public containsElements () {
     for (let i = 0; i < this.bits.length; ++i) {
-      if (this.bits[i].toNumber() !== 0) {
+      if (this.bits[i].isNotZero()) {
         return true;
       }
     }
@@ -240,18 +245,11 @@ export class StateSet {
     return false;
   }
   
-  public copy () {
-    const set = new StateSet();
-    if (this.bits.length < set.bits.length) {
-      this.bits = new Array(set.bits.length);
-    } else {
-      for (let i = set.bits.length; i < this.bits.length; ++i) {
-        this.bits[i] = JavaLong.getZero();
-      }
+  public copy (set: StateSet) {
+    this.bits = [];
+    for (let i = 0; i < set.bits.length; i++) {
+      this.bits[i] = set.bits[i].copy();
     }
-    this.bits = set.bits.copyWithin(0, 0);
-    return set;
-  
   }
   
   public toString () {

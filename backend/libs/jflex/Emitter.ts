@@ -5,12 +5,14 @@ import {CharSet} from './CharSet';
 import {DFA} from './DFA';
 import {CharClassInterval} from './CharClassInterval';
 import {LexScan} from './LexScan';
-import {isNumber} from 'util';
+import {isNumber, isUndefined} from 'util';
 import {CountEmitter} from './CountEmitter';
 import {PrintWriter} from './PrintWriter';
 import {HiLowEmitter} from './HiLowEmitter';
 import {Action} from './Action';
 import {CharSetEnumerator} from './CharSetEnumerator';
+import {ObjectKeyMap} from '../ObjectKeyMap';
+import {JavaCharacter} from '../JavaCharacter';
 
 export class Emitter {
   private static readonly FINAL = 1;
@@ -19,7 +21,7 @@ export class Emitter {
   private static readonly NOLOOK = 8;
   private static readonly date = new Date();
   public parser: LexParse;
-  private inputFile: File;
+  // private inputFile: File;
   private out: PrintWriter;
   private skel: Skeleton;
   private scanner: LexScan;
@@ -31,10 +33,10 @@ export class Emitter {
   private rowMap: number[];
   private rowKilled: boolean[];
   private numCols: number;
-  private colMap: number[];
+  private colMap: JavaCharacter[];
   private colKilled: boolean[];
-  private actionTable: Map<Action, number>;
-  private intervalls: CharClassInterval[];
+  private actionTable: ObjectKeyMap<Action, number> = new ObjectKeyMap<Action, number>();
+  private intervals: CharClassInterval[];
   private visibility = 'public';
   
   public constructor (inputFile: File, parser: LexParse, dfa: DFA) {
@@ -44,7 +46,7 @@ export class Emitter {
     this.parser = parser;
     this.scanner = parser.scanner;
     this.visibility = this.scanner.visibility;
-    this.inputFile = inputFile;
+    // this.inputFile = inputFile;
     this.dfa = dfa;
     this.skel = new Skeleton(this.out);
   }
@@ -78,7 +80,7 @@ export class Emitter {
       if (this.dfa.isFinal[i]) {
         const action = this.dfa.action[i];
         let stored = <number> this.actionTable.get(action);
-        if (stored === null) {
+        if (isUndefined(stored)) {
           stored = lastAction++;
           this.actionTable.set(action, stored);
         }
@@ -108,9 +110,9 @@ export class Emitter {
     this.println(e.toString());
   }
   
-  public emit () {
+  public emit (): string[] {
     this.setupEOFCode();
-    if (this.scanner.functionName === null) {
+    if (isUndefined(this.scanner.functionName)) {
       this.scanner.functionName = 'yylex';
     }
     
@@ -175,6 +177,7 @@ export class Emitter {
     this.skel.emitNext();
     this.emitMain();
     this.skel.emitNext();
+    return this.out.content;
     // this.out.close();
   }
   
@@ -202,22 +205,22 @@ export class Emitter {
   }
   
   private emitScanError () {
-    this.print('  private  zzScanError(int errorCode)');
-    if (this.scanner.scanErrorException !== null) {
+    this.print('  private  void zzScanError(int errorCode)');
+    if (!isUndefined(this.scanner.scanErrorException)) {
       this.print(' throws ' + this.scanner.scanErrorException);
     }
     
     this.println(' {');
     this.skel.emitNext();
-    if (this.scanner.scanErrorException === null) {
+    if (isUndefined(this.scanner.scanErrorException)) {
       this.println('    throw new Error(message);');
     } else {
       this.println('    throw new ' + this.scanner.scanErrorException + '(message);');
     }
     
     this.skel.emitNext();
-    this.print('  ' + this.visibility + '  yypushback(int number) ');
-    if (this.scanner.scanErrorException === null) {
+    this.print('  ' + this.visibility + ' void  yypushback(int number) ');
+    if (isUndefined(this.scanner.scanErrorException)) {
       this.println(' {');
     } else {
       this.println(' throws ' + this.scanner.scanErrorException + ' {');
@@ -256,7 +259,7 @@ export class Emitter {
         this.println('   * This code was contributed by Karl Meissner <meissnersd@yahoo.com>');
         this.println('   */');
         this.print('  ' + this.visibility + ' ');
-        if (this.scanner.tokenType === null) {
+        if (isUndefined(this.scanner.tokenType)) {
           if (this.scanner.isInteger) {
             this.print('int');
           } else if (this.scanner.isIntWrap) {
@@ -271,12 +274,12 @@ export class Emitter {
         this.print(' debug_');
         this.print(this.scanner.functionName);
         this.print('() throws java.io.IOException');
-        if (this.scanner.lexThrow !== null) {
+        if (!isUndefined(this.scanner.lexThrow)) {
           this.print(', ');
           this.print(this.scanner.lexThrow);
         }
-        
-        if (this.scanner.scanErrorException !== null) {
+  
+        if (isUndefined(this.scanner.scanErrorException)) {
           this.print(', ');
           this.print(this.scanner.scanErrorException);
         }
@@ -372,7 +375,7 @@ export class Emitter {
     this.println('            break zzForAction;');
     this.println('          }');
     this.println('          else {');
-    this.println('            // store back cached positions');
+    this.println('            /* store back cached positions*/');
     this.println('            zzCurrentPos  = zzCurrentPosL;');
     this.println('            zzMarkedPos   = zzMarkedPosL;');
     if (this.scanner.lookAheadUsed) {
@@ -380,7 +383,7 @@ export class Emitter {
     }
     
     this.println('            boolean eof = zzRefill();');
-    this.println('            // get translated positions and possibly new buffer');
+    this.println('            /* get translated positions and possibly new buffer*/');
     this.println('            zzCurrentPosL  = zzCurrentPos;');
     this.println('            zzMarkedPosL   = zzMarkedPos;');
     this.println('            zzBufferL      = zzBuffer;');
@@ -413,13 +416,13 @@ export class Emitter {
   
   private emitClassName () {
     if (!Emitter.endsWithJavadoc(this.scanner.userCode)) {
-      const path = this.inputFile.toString();
+      // const path = this.inputFile.toString();
       
       this.println('/**');
       this.println(' * This class is a scanner generated by ');
       this.println(' * <a href="http://www.jflex.de/">JFlex</a> 1.4');
       this.println(' * on ' + Emitter.date + ' from the specification file');
-      this.println(' * <tt>' + path + '</tt>');
+      // this.println(' * <tt>' + path + '</tt>');
       this.println(' */');
     }
     
@@ -437,12 +440,12 @@ export class Emitter {
     
     this.print('class ');
     this.print(this.scanner.className);
-    if (this.scanner.isExtending !== null) {
+    if (!isUndefined(this.scanner.isExtending)) {
       this.print(' extends ');
       this.print(this.scanner.isExtending);
     }
-    
-    if (this.scanner.isImplementing !== null) {
+  
+    if (!isUndefined(this.scanner.isImplementing)) {
       this.print(' implements ');
       this.print(this.scanner.isImplementing);
     }
@@ -538,7 +541,7 @@ export class Emitter {
       this.println('    char [] map = new char[0x10000];');
       this.println('    int i = 0;  /* index in packed string  */');
       this.println('    int j = 0;  /* index in unpacked array */');
-      this.println('    while (i < ' + 2 * this.intervalls.length + ') {');
+      this.println('    while (i < ' + 2 * this.intervals.length + ') {');
       this.println('      int  count = packed.charAt(i++);');
       this.println('      char value = packed.charAt(i++);');
       this.println('      do map[j++] = value; while (--count > 0);');
@@ -583,7 +586,7 @@ export class Emitter {
   
   private emitCharMapArrayUnPacked () {
     const cl = this.parser.getCharClasses();
-    this.intervalls = cl.getIntervals();
+    this.intervals = cl.getIntervals();
     this.println('');
     this.println('  /** ');
     this.println('   * Translates characters to character classes');
@@ -592,12 +595,12 @@ export class Emitter {
     let n = 0;
     this.print('    ');
     const max = cl.getMaxCharCode();
+  
+    for (let i = 0; i < this.intervals.length && this.intervals[i].start.code <= max; ++i) {
+      const end = Math.min(this.intervals[i].end.code, max);
     
-    for (let i = 0; i < this.intervalls.length && this.intervalls[i].start <= max; ++i) {
-      const end = Math.min(this.intervalls[i].end, max);
-      
-      for (let c = this.intervalls[i].start; c <= end; ++c) {
-        this.print(this.colMap[this.intervalls[i].charClass], 2);
+      for (let c = this.intervals[i].start.code; c <= end; ++c) {
+        this.print(this.colMap[this.intervals[i].charClass].value, 2);
         if (c < max) {
           this.print(', ');
           ++n;
@@ -620,7 +623,7 @@ export class Emitter {
     if (cl.getMaxCharCode() < 256) {
       this.emitCharMapArrayUnPacked();
     } else {
-      this.intervalls = cl.getIntervals();
+      this.intervals = cl.getIntervals();
       this.println('');
       this.println('  /** ');
       this.println('   * Translates characters to character classes');
@@ -630,11 +633,11 @@ export class Emitter {
       this.print('    "');
       
       let i;
-      for (i = 0; i < this.intervalls.length - 1; ++i) {
-        const count = this.intervalls[i].end - this.intervalls[i].start + 1;
-        const value = this.colMap[this.intervalls[i].charClass];
+      for (i = 0; i < this.intervals.length - 1; ++i) {
+        const count = this.intervals[i].end.code - this.intervals[i].start.code + 1;
+        const value = this.colMap[this.intervals[i].charClass];
         this.printUC(count);
-        this.printUC(value);
+        this.printUC(value.code);
         ++n;
         if (n >= 10) {
           this.println('"+');
@@ -642,9 +645,9 @@ export class Emitter {
           n = 0;
         }
       }
-      
-      this.printUC(this.intervalls[i].end - this.intervalls[i].start + 1);
-      this.printUC(this.colMap[this.intervalls[i].charClass]);
+  
+      this.printUC(this.intervals[i].end.code - this.intervals[i].start.code + 1);
+      this.printUC(this.colMap[this.intervals[i].charClass].code);
       this.println('";');
       this.println('');
       this.println('  /** ');
@@ -743,13 +746,13 @@ export class Emitter {
   }
   
   private emitClassCode () {
-    if (this.scanner.eofCode !== null) {
+    if (!isUndefined(this.scanner.eofCode)) {
       this.println('  /** denotes if the user-EOF-code has already been executed */');
       this.println('  private boolean zzEOFDone;');
       this.println('');
     }
-    
-    if (this.scanner.classCode !== null) {
+  
+    if (!isUndefined(this.scanner.classCode)) {
       this.println('  /* user code: */');
       this.println(this.scanner.classCode);
     }
@@ -764,13 +767,13 @@ export class Emitter {
     
     this.print(this.scanner.className);
     this.print('(java.io.Reader in)');
-    if (this.scanner.initThrow !== null) {
+    if (!isUndefined(this.scanner.initThrow)) {
       this.print(' throws ');
       this.print(this.scanner.initThrow);
     }
     
     this.println(' {');
-    if (this.scanner.initCode !== null) {
+    if (!isUndefined(this.scanner.initCode)) {
       this.print('  ');
       this.print(this.scanner.initCode);
     }
@@ -791,7 +794,7 @@ export class Emitter {
     
     this.print(this.scanner.className);
     this.print('(java.io.InputStream in)');
-    if (this.scanner.initThrow !== null) {
+    if (!isUndefined(this.scanner.initThrow)) {
       this.print(' throws ');
       this.print(this.scanner.initThrow);
     }
@@ -802,13 +805,13 @@ export class Emitter {
   }
   
   private emitDoEOF () {
-    if (this.scanner.eofCode !== null) {
+    if (!isUndefined(this.scanner.eofCode)) {
       this.println('  /**');
       this.println('   * Contains user EOF-code, which will be executed exactly once,');
       this.println('   * when the end of file is reached');
       this.println('   */');
       this.print('  private  zzDoEOF()');
-      if (this.scanner.eofThrow !== null) {
+      if (!isUndefined(this.scanner.eofThrow)) {
         this.print(' throws ');
         this.print(this.scanner.eofThrow);
       }
@@ -830,8 +833,8 @@ export class Emitter {
     } else {
       this.print('  ' + this.visibility + ' ');
     }
-    
-    if (this.scanner.tokenType === null) {
+  
+    if (isUndefined(this.scanner.tokenType)) {
       if (this.scanner.isInteger) {
         this.print('int');
       } else if (this.scanner.isIntWrap) {
@@ -846,12 +849,12 @@ export class Emitter {
     this.print(' ');
     this.print(this.scanner.functionName);
     this.print('() throws java.io.IOException');
-    if (this.scanner.lexThrow !== null) {
+    if (!isUndefined(this.scanner.lexThrow)) {
       this.print(', ');
       this.print(this.scanner.lexThrow);
     }
-    
-    if (this.scanner.scanErrorException !== null) {
+  
+    if (!isUndefined(this.scanner.scanErrorException)) {
       this.print(', ');
       this.print(this.scanner.scanErrorException);
     }
@@ -931,10 +934,10 @@ export class Emitter {
       this.println('');
       if (this.scanner.lineCount) {
         this.println('      if (zzR) {');
-        this.println('        // peek one character ahead if it is \\n (if we have counted one line too much)');
+        this.println('        /* peek one character ahead if it is \n (if we have counted one line too much) */');
         this.println('        boolean zzPeek;');
         this.println('        if (zzMarkedPosL < zzEndReadL)');
-        this.println('          zzPeek = zzBufferL[zzMarkedPosL] === \'\\n\';');
+        this.println('          zzPeek = zzBufferL[zzMarkedPosL] == \'\\n\';');
         this.println('        else if (zzAtEOF)');
         this.println('          zzPeek = false;');
         this.println('        else {');
@@ -944,7 +947,7 @@ export class Emitter {
         this.println('          if (eof) ');
         this.println('            zzPeek = false;');
         this.println('          else ');
-        this.println('            zzPeek = zzBufferL[zzMarkedPosL] === \'\\n\';');
+        this.println('            zzPeek = zzBufferL[zzMarkedPosL] == \'\\n\';');
         this.println('        }');
         this.println('        if (zzPeek) yyline--;');
         this.println('      }');
@@ -964,7 +967,7 @@ export class Emitter {
       this.println('          break;');
       this.println('        case \'\\r\': ');
       this.println('          if (zzMarkedPosL < zzEndReadL)');
-      this.println('            zzAtBOL = zzBufferL[zzMarkedPosL] !== \'\\n\';');
+      this.println('            zzAtBOL = zzBufferL[zzMarkedPosL] != \'\\n\';');
       this.println('          else if (zzAtEOF)');
       this.println('            zzAtBOL = false;');
       this.println('          else {');
@@ -974,7 +977,7 @@ export class Emitter {
       this.println('            if (eof) ');
       this.println('              zzAtBOL = false;');
       this.println('            else ');
-      this.println('              zzAtBOL = zzBufferL[zzMarkedPosL] !== \'\\n\';');
+      this.println('              zzAtBOL = zzBufferL[zzMarkedPosL] != \'\\n\';');
       this.println('          }');
       this.println('          break;');
       this.println('        default:');
@@ -1009,18 +1012,18 @@ export class Emitter {
     this.println('');
     this.println('          int zzAttributes = zzAttrL[zzState];');
     if (this.scanner.lookAheadUsed) {
-      this.println('          if ( (zzAttributes & 2) === 2 )');
+      this.println('          if ( (zzAttributes & 2) == 2 )');
       this.println('            zzPushbackPosL = zzCurrentPosL;');
       this.println('');
     }
-    
-    this.println('          if ( (zzAttributes & 1) === 1 ) {');
+  
+    this.println('          if ( (zzAttributes & 1) == 1 ) {');
     if (this.scanner.lookAheadUsed) {
-      this.println('            zzWasPushback = (zzAttributes & 4) === 4;');
+      this.println('            zzWasPushback = (zzAttributes & 4) == 4;');
     }
     
     this.skel.emitNext();
-    this.println('            if ( (zzAttributes & 8) === 8 ) break zzForAction;');
+    this.println('            if ( (zzAttributes & 8) == 8 ) break zzForAction;');
     this.skel.emitNext();
   }
   
@@ -1044,7 +1047,7 @@ export class Emitter {
     }
     
     this.println('            default:');
-    this.println('              // if this is ever reached, there is a serious bug in JFlex');
+    this.println('              /* if this is ever reached, there is a serious bug in JFlex*/');
     this.println('              zzScanError(ZZ_UNKNOWN_ERROR);');
     this.println('              break;');
     this.println('          } }');
@@ -1123,7 +1126,7 @@ export class Emitter {
   
   private emitEOFVal () {
     const eofActions = this.parser.getEOFActions();
-    if (this.scanner.eofCode !== null) {
+    if (!isUndefined(this.scanner.eofCode)) {
       this.println('            zzDoEOF();');
     }
     
@@ -1138,15 +1141,15 @@ export class Emitter {
         let unused = true;
         if (!this.scanner.bolUsed) {
           const key = this.dfa.lexState[2 * num];
-          unused = used.get(key) === null;
+          unused = isUndefined(used.get(key));
           if (!unused) {
             Out.warning('Lexical states <' + name + '> and <' + used.get(key) + '> are equivalent.', -1, -1);
           } else {
             used.set(key, name);
           }
         }
-        
-        if (action !== null && unused) {
+  
+        if (!isUndefined(action) && unused) {
           this.println('            case ' + name + ':');
           this.println('              { ' + action.content + ' }');
           const var10001 = ('            case ');
@@ -1160,10 +1163,10 @@ export class Emitter {
       
       this.println('            default:');
     }
-    
-    if (eofActions.getDefault() !== null) {
+  
+    if (!isUndefined(eofActions.getDefault())) {
       this.println('              { ' + eofActions.getDefault().content + ' }');
-    } else if (this.scanner.eofVal !== null) {
+    } else if (!isUndefined(this.scanner.eofVal)) {
       this.println('              { ' + this.scanner.eofVal + ' }');
     } else if (this.scanner.isInteger) {
       this.println('            return YYEOF;');
@@ -1183,12 +1186,12 @@ export class Emitter {
     const defaultTransition = this.getDefaultTransition(state);
     
     for (let next = 0; next < this.dfa.numStates; ++next) {
-      if (next !== defaultTransition && this.table[state][next] !== null) {
+      if (next !== defaultTransition && !isUndefined(this.table[state][next])) {
         this.emitTransition(state, next);
       }
     }
-    
-    if (defaultTransition !== -1 && this.noTarget[state] !== null) {
+  
+    if (defaultTransition !== -1 && !isUndefined(this.noTarget[state])) {
       this.emitTransition(state, -1);
     }
     
@@ -1206,13 +1209,13 @@ export class Emitter {
     }
     
     this.print('                case ');
-    this.print(chars.nextElement());
+    this.print(chars.nextElement().value);
     this.print(': ');
     
     while (chars.hasMoreElements()) {
       this.println('');
       this.print('                case ');
-      this.print(chars.nextElement());
+      this.print(chars.nextElement().value);
       this.print(': ');
     }
     
@@ -1281,18 +1284,22 @@ export class Emitter {
   
   private getDefaultTransition (state: number) {
     let max = 0;
-    
+    // console.log(this.table);
     for (let i = 0; i < this.dfa.numStates; ++i) {
-      if (this.table[state][max] === null) {
+      if (isUndefined(this.table[state])) {
+        this.table[state] = [];
+      }
+      if (isUndefined(this.table[state][max])) {
         max = i;
-      } else if (this.table[state][i] !== null && this.table[state][max].size() < this.table[state][i].size()) {
+    
+      } else if (!isUndefined(this.table[state][i]) && this.table[state][max].size() < this.table[state][i].size()) {
         max = i;
       }
     }
-    
-    if (this.table[state][max] === null) {
+  
+    if (isUndefined(this.table[state][max])) {
       return -1;
-    } else if (this.noTarget[state] === null) {
+    } else if (isUndefined(this.noTarget[state])) {
       return max;
     } else {
       if (this.table[state][max].size() < this.noTarget[state].size()) {
@@ -1305,19 +1312,21 @@ export class Emitter {
   
   private transformTransitionTable () {
     const numInput = this.parser.getCharClasses().getNumClasses() + 1;
-    this.table = new CharSet[this.dfa.numStates][this.dfa.numStates];
-    this.noTarget = new CharSet[this.dfa.numStates];
+    this.table = [];
+    this.noTarget = [];
     
     for (let i = 0; i < this.dfa.numStates; ++i) {
+      this.table = [];
       for (let j = 0; j < this.dfa.numInput; ++j) {
+        this.table[i] = [];
         const nextState = this.dfa.table[i][j];
         if (nextState === -1) {
-          if (this.noTarget[i] === null) {
+          if (isUndefined(this.noTarget[i])) {
             this.noTarget[i] = new CharSet(numInput, this.colMap[j]);
           } else {
             this.noTarget[i].add(this.colMap[j]);
           }
-        } else if (this.table[i][nextState] === null) {
+        } else if (isUndefined(this.table[i][nextState])) {
           this.table[i][nextState] = new CharSet(numInput, this.colMap[j]);
         } else {
           this.table[i][nextState].add(this.colMap[j]);
@@ -1345,7 +1354,7 @@ export class Emitter {
     this.numCols = this.dfa.numInput;
     
     for (let i = 0; i < this.dfa.numInput; ++i) {
-      this.colMap[i] = i - translate;
+      this.colMap[i] = new JavaCharacter(i - translate);
       let equal: boolean;
       for (let j = 0; j < i; ++j) {
         let k = -1;

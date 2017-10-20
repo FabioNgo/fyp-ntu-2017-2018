@@ -10,8 +10,10 @@ import {JFlexTask} from '../../backend/libs/jflex/anttask/JFlexTask';
 })
 export class LexicalComponent {
   jflexInputGroup: FormGroup;
-  title = 'Lexical Analysis Place Holder';
+  title = 'Lexical Analysis Place Holder\nasdasd';
   jflexTask: JFlexTask;
+  output = '';
+  content = [];
   
   constructor (fb: FormBuilder) {
     this.jflexInputGroup = fb.group({
@@ -130,7 +132,11 @@ export class LexicalComponent {
       // console.log(jflexInputContent);
       // let a = new StateSet(0);
       this.jflexTask = new JFlexTask();
-      this.jflexTask.execute(jflexInputContent);
+      this.content = this.jflexTask.execute(jflexInputContent);
+      for (let i = 0; i < this.content.length; i++) {
+        this.output = this.output + ( this.content[i] + '\n');
+      }
+      console.log(this.output);
       console.log('Done');
       // let a = 0;
     }

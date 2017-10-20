@@ -16,7 +16,7 @@ export class JFlexTask {
     Options.progress = false;
   }
   
-  public execute (fileOrContent: string | File) {
+  public execute (fileOrContent: string | File): string[] {
     if (fileOrContent instanceof File) {
       this.inputFile = <File>fileOrContent;
       this.inputContent = new JavaFileReader(this.inputFile).getContent();
@@ -26,10 +26,11 @@ export class JFlexTask {
     }
     this.findPackageAndClass();
     const destFile = this.outputDir + this.className + '.java';
-    Main.generate(this.inputContent);
-    if (!Options.verbose) {
-      console.log('Generated: ' + destFile);
-    }
+    
+    return Main.generate(this.inputContent);
+    // if (!Options.verbose) {
+    //   console.log('Generated: ' + destFile);
+    // }
     
     
   }

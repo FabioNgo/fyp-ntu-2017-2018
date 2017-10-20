@@ -9,6 +9,7 @@ import {JavaFileReader} from '../JavaFileReader';
 import {GeneratorException} from './GeneratorException';
 import {JavaVector} from '../JavaVector';
 import {isString} from 'util';
+import {Emitter} from './Emitter';
 
 export class Main {
   public static readonly version = '1.4';
@@ -16,7 +17,7 @@ export class Main {
   public constructor () {
   }
   
-  public static generate (input: string | string[]) {
+  public static generate (input: string | string[]): string[] {
     if (isString(input)) {
       const fileContent = input;
       Out.resetCounters();
@@ -62,7 +63,7 @@ export class Main {
         }
         
         time.start();
-        dfa.minimize();
+        // dfa.minimize();
         time.stop();
         Out.println(ErrorMessages.MIN_TOOK + time.toString());
         if (Options.dump) {
@@ -70,12 +71,14 @@ export class Main {
         }
         
         time.start();
-        // const e = new Emitter(inputFile, parser, dfa);
-        // e.emit();
+        const e = new Emitter(null, parser, dfa);
+        const output = e.emit();
+        
         time.stop();
         Out.time(ErrorMessages.WRITE_TOOK, time);
         totalTime.stop();
         Out.time(ErrorMessages.TOTAL_TIME, totalTime);
+        return output;
       } catch (var12) {
         console.log(var12.stack);
         Out.error(var12.toString(), var12.line, var12.column);

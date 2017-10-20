@@ -1,4 +1,5 @@
 import {CharSet} from './CharSet';
+import {JavaCharacter} from '../JavaCharacter';
 
 export class CharSetEnumerator {
   index: number;
@@ -11,7 +12,7 @@ export class CharSetEnumerator {
     }
     
     if (this.index < this.set.bits.length) {
-      while (this.offset <= 63 && (this.set.bits[this.index].valueOf() & this.mask) === 0) {
+      while (this.offset <= 63 && (this.set.bits[this.index] & this.mask) === 0) {
         this.mask <<= 1;
         ++this.offset;
       }
@@ -23,10 +24,10 @@ export class CharSetEnumerator {
     return this.index < this.set.bits.length;
   }
   
-  public nextElement (): number {
+  public nextElement (): JavaCharacter {
     const x = (this.index << 6) + this.offset;
     this.advance();
-    return x;
+    return new JavaCharacter(x);
   }
   
   private advance () {

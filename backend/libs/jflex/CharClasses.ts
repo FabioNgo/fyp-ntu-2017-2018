@@ -3,6 +3,7 @@ import {Interval} from './Interval';
 import {JavaCharacter} from '../JavaCharacter';
 import {JavaVector} from '../JavaVector';
 import {CharClassInterval} from './CharClassInterval';
+import {isString} from 'util';
 
 export class CharClasses {
   readonly DEBUG = false;
@@ -69,9 +70,9 @@ export class CharClasses {
       this.makeClass(new IntCharSet(input), caseless);
       return;
     }
-    if (input instanceof String) {
+    if (isString(input)) {
       for (let i = 0; i < input.length; ++i) {
-        this.makeClass(input.charAt(i), caseless);
+        this.makeClass(new JavaCharacter(input.charAt(i)), caseless);
       }
       return;
     }
@@ -172,9 +173,9 @@ export class CharClasses {
     return result;
   }
   
-  public getClassCodes (set, negate?: boolean): Array<Number> {
+  public getClassCodes (set, negate?: boolean): number[] {
     const size = this.classes.size();
-    const temp = new Array<Number>(size);
+    const temp = [];
     let length = 0;
     
     for (let i = 0; i < size; ++i) {
@@ -188,9 +189,8 @@ export class CharClasses {
       }
     }
     
-    let result = new Array<Number>(length);
     
-    result = result.copyWithin(0, 0, length);
+    const result = temp.copyWithin(0, 0, length);
     return result;
   }
 }

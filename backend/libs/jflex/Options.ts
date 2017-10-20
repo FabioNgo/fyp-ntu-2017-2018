@@ -1,5 +1,4 @@
 import {Skeleton} from './Skeleton';
-import {JavaFileReader} from '../JavaFileReader';
 
 export class Options {
   public static readonly DEBUG = false;
@@ -42,6 +41,6 @@ export class Options {
   }
   
   public static setSkeleton (skel: File) {
-    Skeleton.readSkel(new JavaFileReader(skel));
+    Skeleton.readSkel();
   }
 }

@@ -123,6 +123,7 @@ export class LexScan {
     this.files = [];
     this.userCode = '';
     this.cupSymbol = 'sym';
+    this.bufferSize = 16384;
     this.actionText = '';
     this.string = '';
     this.useRowMap = Options.gen_method === 0 || Options.gen_method === 1;

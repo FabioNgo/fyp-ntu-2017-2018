@@ -1,14 +1,18 @@
 import {JavaString} from '../JavaString';
 import {JavaObject} from '../JavaObject';
 
-export class Action {
+export class Action implements JavaObject {
   content: string;
   priority: number;
   lookAction: boolean;
-  
+
   public constructor (content: string, priority: number) {
     this.content = content.trim();
     this.priority = priority;
+  }
+  
+  getClass (): string {
+    return 'Action';
   }
   
   public getHigherPriority (other: Action): Action {

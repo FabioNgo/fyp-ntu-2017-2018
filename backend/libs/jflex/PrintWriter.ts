@@ -1,15 +1,18 @@
 export class PrintWriter {
-  out: string;
+  content: string[];
+  length: number;
   
   constructor () {
-    this.out = '';
+    this.length = 0;
+    this.content = [];
   }
   
   public println (line) {
-    this.out += (line + '\n');
+    this.content[this.length] = line;
+    this.length++;
   }
   
   public print (line) {
-    this.out += line;
+    this.content[this.length - 1] += line;
   }
 }

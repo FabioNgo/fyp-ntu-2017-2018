@@ -1,36 +1,37 @@
 import {CharSetEnumerator} from './CharSetEnumerator';
+import {JavaCharacter} from '../JavaCharacter';
 
 export class CharSet {
   readonly BITS = 6;
   readonly MOD = 63;
-  bits: Array<Number>;
+  bits: number[];
   numElements: number;
   
-  constructor (initialSize?: number, character?: number) {
+  constructor (initialSize?: number, character?: JavaCharacter) {
     if (!initialSize) {
-      this.bits = new Array<Number>(1);
+      this.bits = [];
     } else {
-      this.bits = new Array<Number>((initialSize >> 6) + 1);
+      this.bits = [];
       this.add(character);
     }
     
   }
   
-  public add (character: number) {
-    this.resize(character);
-    if ((this.bits[(character >> 6)].valueOf() & 1 << (character & 63)) === 0) {
+  public add (character: JavaCharacter) {
+    // this.resize(character);
+    if ((this.bits[(character.code >> 6)] & 1 << (character.code & 63)) === 0) {
       ++this.numElements;
     }
-    const pos = character >> 6;
-    this.bits[pos] = this.bits[pos].valueOf() | (1 << (character & 63));
+    const pos = character.code >> 6;
+    this.bits[pos] = this.bits[pos] | (1 << (character.code & 63));
   }
   
-  public isElement (character: number): boolean {
-    const index = character >> 6;
+  public isElement (character: JavaCharacter): boolean {
+    const index = character.code >> 6;
     if (index >= this.bits.length) {
       return false;
     } else {
-      return (this.bits[index].valueOf() & 1 << (character & 63)) !== 0;
+      return (this.bits[index] & 1 << (character.code & 63)) !== 0;
     }
   }
   
@@ -69,8 +70,7 @@ export class CharSet {
   private resize (nbits: number) {
     const needed = this.nbits2size(nbits);
     if (needed >= this.bits.length) {
-      let newbits = new Array<Number>(Math.max(this.bits.length * 2, needed));
-      newbits = this.bits.copyWithin(0, 0);
+      const newbits = this.bits.copyWithin(0, 0);
       this.bits = newbits;
     }
   }

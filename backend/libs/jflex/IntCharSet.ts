@@ -6,7 +6,7 @@ import {JavaVector} from '../JavaVector';
 export class IntCharSet {
   DEBUG = false;
   intervals: JavaVector<Interval>;
-  pos: number;
+  pos = 0;
   
   constructor (input?: JavaVector<Interval> | JavaCharacter | Interval) {
     if (!input) {

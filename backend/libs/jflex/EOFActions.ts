@@ -1,5 +1,6 @@
 import {Action} from './Action';
 import {JavaVector} from '../JavaVector';
+import {isNumber} from 'util';
 
 export class EOFActions {
   private actions: Map<any, any> = new Map<any, any>();
@@ -14,7 +15,7 @@ export class EOFActions {
   }
   
   public add (stateList?, action?: Action) {
-    if (isNaN(stateList)) {
+    if (isNumber(stateList)) {
       if (this.actions.get(stateList) == null) {
         this.actions.set(stateList, action);
       } else {

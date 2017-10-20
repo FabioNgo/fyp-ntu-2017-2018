@@ -1,7 +1,7 @@
 import {PackEmitter} from './PackEmitter';
 
 export class CountEmitter extends PackEmitter {
-  numEntries: number;
+  numEntries = 0;
   translate = 0;
   
   public constructor (name: string) {

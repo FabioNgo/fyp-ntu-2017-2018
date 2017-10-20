@@ -3,8 +3,11 @@
 // `ng build --env=prod` then `environment.prod.ts` will be used instead.
 // The list of which env maps to which file can be found in `.angular-cli.json`.
 
+import {isUndefined} from 'util';
+
 export class JavaLong {
   // public static ONE = new JavaLong(1);
+  private static hash: JavaLong[] = [];
   private static readonly TWO_PWR_16_DBL_ = 1 << 16;
   private static readonly TWO_PWR_32_DBL_ = JavaLong.TWO_PWR_16_DBL_ * JavaLong.TWO_PWR_16_DBL_;
   private static readonly TWO_PWR_64_DBL_ = JavaLong.TWO_PWR_32_DBL_ * JavaLong.TWO_PWR_32_DBL_;
@@ -18,14 +21,21 @@ export class JavaLong {
     this.setHigh(high);
     this.setLow(low);
     this.value = this.toNumber();
+  
   }
   
   public static getZero (): JavaLong {
-    return new JavaLong(0, 0);
+    if (isUndefined(JavaLong.hash[0])) {
+      JavaLong.hash[0] = new JavaLong(0, 0);
+    }
+    return JavaLong.hash[0];
   }
   
   public static getOne (): JavaLong {
-    return new JavaLong(0, 1);
+    if (isUndefined(JavaLong.hash[1])) {
+      JavaLong.hash[1] = new JavaLong(0, 1);
+    }
+    return JavaLong.hash[1];
   }
   
   public static fromNumber (value: number) {
@@ -50,6 +60,18 @@ export class JavaLong {
   public static bitOr (a: JavaLong, b: JavaLong): JavaLong {
     return JavaLong.fromBits(
       a.high | b.high, a.low | b.low);
+  }
+  
+  public copy (): JavaLong {
+    return new JavaLong(this.high, this.low);
+  }
+  
+  public isZero (): boolean {
+    return this.equals(JavaLong.getZero());
+  }
+  
+  public isNotZero (): boolean {
+    return !this.equals(JavaLong.getZero());
   }
   
   public shiftLeft (numBits: number): JavaLong {
@@ -101,11 +123,16 @@ export class JavaLong {
     
   }
   
-  public toNumber (): number {
-    return this.high * JavaLong.TWO_PWR_32_DBL_
-      + this.getLowBitsUnsigned();
+  public notEquals (input: JavaLong): boolean {
+    return !this.equals(input);
   }
   
+  public equals (input: JavaLong): boolean {
+    if (isUndefined(input)) {
+      return false;
+    }
+    return input.high === this.high && input.low === this.low;
+  }
   public setLow (input: number) {
     this.low = input | 0;
     // this.low = Math.floor(input) % (2 ** 32);
@@ -130,6 +157,11 @@ export class JavaLong {
   
   toString () {
     return this.value;
+  }
+  
+  toNumber (): number {
+    return this.high * JavaLong.TWO_PWR_32_DBL_
+      + this.getLowBitsUnsigned();
   }
   
   private getLowBitsUnsigned () {

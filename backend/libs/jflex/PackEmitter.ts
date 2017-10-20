@@ -4,11 +4,11 @@ export abstract class PackEmitter {
   private static readonly maxEntries = 16;
   private static readonly maxSize = 65529;
   private static indent = '    ';
-  out: string;
-  protected name: string;
-  protected chunks: number;
-  private _UTF8Length: number;
-  private linepos: number;
+  out = '';
+  protected name = '';
+  protected chunks = 0;
+  private _UTF8Length = 0;
+  private linepos = 0;
   
   constructor (name: string) {
     this.name = name;

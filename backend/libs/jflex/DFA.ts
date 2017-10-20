@@ -6,6 +6,7 @@ import {LexParse} from './LexParse';
 import {ErrorMessages} from './ErrorMessages';
 import {StatePairList} from './StatePairList';
 import {isUndefined} from 'util';
+import {ObjectKeyMap} from '../ObjectKeyMap';
 
 
 export class DFA {
@@ -19,7 +20,7 @@ export class DFA {
   lexState: number[];
   numStates: number;
   numInput: number;
-  usedActions: Map<any, any> = new Map<any, any>();
+  usedActions: ObjectKeyMap<Action, Action> = new ObjectKeyMap<Action, Action>();
   
   public constructor (numLexStates, numInp) {
     this.numInput = numInp;
@@ -137,14 +138,14 @@ export class DFA {
     } else {
       const n = this.numStates + 1;
       const block = [];
-      const b_forward = [];
-      const b_backward = [];
-      let lastBlock: number;
+      const b_forward: number[] = [];
+      const b_backward: number[] = [];
+      let lastBlock = n;
       const b0 = n;
       const l_forward = [];
       const l_backward = [];
       const anchorL = n * this.numInput;
-      const inv_delta = [];
+      const inv_delta: number[][] = [];
       const inv_delta_set = [];
       const twin = [];
       const SD = [];
@@ -158,8 +159,23 @@ export class DFA {
       let B_i;
       let index;
       let last;
+      for (s = 0; s < n * this.numInput + 1; ++s) {
+        l_forward[s] = l_backward[s] = 0;
+      }
+      for (s = 0; s < n; ++s) {
+        inv_delta[s] = [];
+        D[s] = 0;
+        inv_lists[s] = 0;
+      }
+      for (s = 0; s < 2 * n; ++s) {
+        b_backward[s] = b_forward[s] = block[s] = 0;
+        SD[s] = 0;
+        twin[s] = 0;
+      }
       for (let c = 0; c < this.numInput; ++c) {
+  
         for (s = 0; s < n; ++s) {
+    
           inv_list_last[s] = -1;
           inv_delta[s][c] = -1;
         }
@@ -269,8 +285,8 @@ export class DFA {
           }
         }
       }
-      
-      
+  
+      let s1 = 0, s2 = 0;
       let min_s;
       let i;
       let j;
@@ -283,10 +299,9 @@ export class DFA {
         const B_j = b0 + Math.floor(last / this.numInput);
         const a = last % this.numInput;
         let numD = 0;
-        
-        for (s = b_forward[B_j]; s !== B_j; s = b_forward[s]) {
-          for (s = inv_delta[s][a]; inv_delta_set[s] !== -1; D[numD++] = inv_delta_set[s++]) {
-          
+  
+        for (s1 = b_forward[B_j]; s1 !== B_j; s1 = b_forward[s1]) {
+          for (s2 = inv_delta[s1][a]; inv_delta_set[s2] !== -1; D[numD++] = inv_delta_set[s2++]) {
           }
         }
         

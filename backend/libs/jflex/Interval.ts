@@ -34,8 +34,8 @@ export class Interval {
     if (!(o instanceof Interval)) {
       return false;
     } else {
-      
-      return o.start === this.start && o.end === this.end;
+  
+      return o.start.code === this.start.code && o.end.code === this.end.code;
     }
   }
   

@@ -1,9 +1,11 @@
+import {JavaCharacter} from '../JavaCharacter';
+
 export class CharClassInterval {
-  start: number;
-  end: number;
+  start: JavaCharacter;
+  end: JavaCharacter;
   charClass: number;
   
-  constructor (start: number, end: number, charClass: number) {
+  constructor (start: JavaCharacter, end: JavaCharacter, charClass: number) {
     this.start = start;
     this.end = end;
     this.charClass = charClass;
