@@ -13,6 +13,7 @@ import {Action} from './Action';
 import {CharSetEnumerator} from './CharSetEnumerator';
 import {ObjectKeyMap} from '../ObjectKeyMap';
 import {JavaCharacter} from '../JavaCharacter';
+import {Lexer} from '../../../app/lexicalanalysis/Lexer';
 
 export class Emitter {
   private static readonly FINAL = 1;
@@ -122,6 +123,7 @@ export class Emitter {
     this.emitUserCode();
     this.emitClassName();
     this.skel.emitNext();
+    Lexer.setBufferSize(this.scanner.bufferSize);
     this.println('  private static final int ZZ_BUFFERSIZE = ' + this.scanner.bufferSize + ';');
     if (this.scanner.debugOption) {
       this.println('  private static final String ZZ_NL = System.getProperty("line.separator");');
@@ -460,6 +462,7 @@ export class Emitter {
     stateNames.forEach((value: number, name: string) => {
       j = this.scanner.states.getNumber(name);
       if (this.scanner.bolUsed) {
+        Lexer.setLexState(2 * j);
         this.println('  ' + this.visibility + ' static final int ' + name + ' = ' + 2 * j + ';');
       } else {
         this.println('  ' + this.visibility + ' static final int ' + name + ' = ' + this.dfa.lexState[2 * j] + ';');
@@ -505,7 +508,7 @@ export class Emitter {
     const e = new CountEmitter('Trans');
     e.setValTranslation(1);
     e.emitInit();
-    
+    let ZZ_TRANS_PACKED_0 = '';
     for (let i = 0; i < this.dfa.numStates; ++i) {
       if (!this.rowKilled[i]) {
         for (let c = 0; c < this.dfa.numInput; ++c) {
@@ -513,7 +516,7 @@ export class Emitter {
             if (this.dfa.table[i][c] === value) {
               ++count;
             } else {
-              e.emit(count, value);
+              ZZ_TRANS_PACKED_0 += e.emit(count, value);
               count = 1;
               value = this.dfa.table[i][c];
             }
@@ -521,13 +524,15 @@ export class Emitter {
         }
       }
     }
-    
-    e.emit(count, value);
+  
+    ZZ_TRANS_PACKED_0 += e.emit(count, value);
     e.emitUnpack();
     this.println(e.toString());
+    Lexer.ZZ_TRANS_PACKED_0 = ZZ_TRANS_PACKED_0;
   }
   
   private emitCharMapInitFunction () {
+    Lexer.setIntervalLength(this.intervals.length);
     const cl = this.parser.getCharClasses();
     if (cl.getMaxCharCode() >= 256) {
       this.println('');
@@ -631,13 +636,13 @@ export class Emitter {
       this.println('  private static final String ZZ_CMAP_PACKED = ');
       let n = 0;
       this.print('    "');
-      
+      let ZZ_CMAP_PACKED = '';
       let i;
       for (i = 0; i < this.intervals.length - 1; ++i) {
         const count = this.intervals[i].end.code - this.intervals[i].start.code + 1;
         const value = this.colMap[this.intervals[i].charClass];
-        this.printUC(count);
-        this.printUC(value.code);
+        ZZ_CMAP_PACKED += this.printUC(count);
+        ZZ_CMAP_PACKED += this.printUC(value.code);
         ++n;
         if (n >= 10) {
           this.println('"+');
@@ -646,8 +651,9 @@ export class Emitter {
         }
       }
   
-      this.printUC(this.intervals[i].end.code - this.intervals[i].start.code + 1);
-      this.printUC(this.colMap[this.intervals[i].charClass].code);
+      ZZ_CMAP_PACKED += this.printUC(this.intervals[i].end.code - this.intervals[i].start.code + 1);
+      ZZ_CMAP_PACKED += this.printUC(this.colMap[this.intervals[i].charClass].code);
+      Lexer.ZZ_CMAP_PACKED = ZZ_CMAP_PACKED;
       this.println('";');
       this.println('');
       this.println('  /** ');
@@ -658,18 +664,25 @@ export class Emitter {
     }
   }
   
-  private printUC (c: number) {
+  private printUC (c: number): string {
+    let result = '';
     if (c > 255) {
-      this.out.print('\\u');
+      result += ('\\u');
+      // this.out.print('\\u');
       if (c < 4096) {
-        this.out.print('0');
+        result += '0';
+        // this.out.print('0');
       }
-      
-      this.out.print(Number(c).toString(16));
+      result += (Number(c).toString(16));
+      // this.out.print(Number(c).toString(16));
     } else {
-      this.out.print('\\');
-      this.out.print(Number(c).toString(8));
+      result += '\\';
+      result += (Number(c).toString(8));
+      // this.out.print('\\');
+      // this.out.print(Number(c).toString(8));
     }
+    this.out.print(result);
+    return result;
     
   }
   
@@ -680,13 +693,14 @@ export class Emitter {
     this.println('   */');
     const e = new HiLowEmitter('RowMap');
     e.emitInit();
-    
+    let ZZ_ROWMAP = '';
     for (let i = 0; i < this.dfa.numStates; ++i) {
-      e.emit(this.rowMap[i] * this.numCols);
+      ZZ_ROWMAP += e.emit(this.rowMap[i] * this.numCols);
     }
     
     e.emitUnpack();
     this.println(e.toString());
+    Lexer.ZZ_ROWMAP_PACKED_0 = ZZ_ROWMAP;
   }
   
   private emitAttributes () {
@@ -695,6 +709,7 @@ export class Emitter {
     this.println('   */');
     const e = new CountEmitter('Attribute');
     e.emitInit();
+    let ZZ_ATTRIBUTE_PACKED_0 = '';
     let count = 1;
     let value = 0;
     if (this.dfa.isFinal[0]) {
@@ -734,15 +749,16 @@ export class Emitter {
       if (value === attribute) {
         ++count;
       } else {
-        e.emit(count, value);
+        ZZ_ATTRIBUTE_PACKED_0 += e.emit(count, value);
         count = 1;
         value = attribute;
       }
     }
-    
-    e.emit(count, value);
+  
+    ZZ_ATTRIBUTE_PACKED_0 += e.emit(count, value);
     e.emitUnpack();
     this.println(e.toString());
+    Lexer.ZZ_ATTRIBUTE_PACKED_0 = ZZ_ATTRIBUTE_PACKED_0;
   }
   
   private emitClassCode () {
@@ -1291,7 +1307,7 @@ export class Emitter {
       }
       if (isUndefined(this.table[state][max])) {
         max = i;
-    
+  
       } else if (!isUndefined(this.table[state][i]) && this.table[state][max].size() < this.table[state][i].size()) {
         max = i;
       }

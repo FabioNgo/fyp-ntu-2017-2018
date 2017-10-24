@@ -34,10 +34,12 @@ export class HiLowEmitter extends PackEmitter {
     this.println('  }');
   }
   
-  public emit (val: number) {
+  public emit (val: number): string {
+    let result = '';
     ++this.numEntries;
     this.breaks();
-    this.emitUC(val >> 16);
-    this.emitUC(val & JavaCharacter.toCode('\uffff'));
+    result += this.emitUC(val >> 16);
+    result += this.emitUC(val & JavaCharacter.toCode('\uffff'));
+    return result;
   }
 }

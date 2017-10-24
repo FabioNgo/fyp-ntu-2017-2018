@@ -2,15 +2,23 @@
 
 <div style="display: block; min-width: 100%">
   {{title}}
-  <form [formGroup]="jflexInputGroup">
-    <mat-form-field style="display: block; min-width: 100%">
-      <textarea matTextareaAutosize required [matAutosizeMinRows]="5" formControlName="jflexInputContent" matInput
+  <div style="min-width: 100%">
+
+
+    <div style="width: 45%; display: inline-block">
+      <form [formGroup]="jflexInputGroup">
+        <mat-form-field style="display: block; min-width: 100%">
+      <textarea matTextareaAutosize required [matAutosizeMinRows]="35" [matAutosizeMaxRows]="35"
+                formControlName="jflexInputContent" matInput
                 placeholder="JflexInputContent"></textarea>
-    </mat-form-field>
-
-  </form>
-  <button mat-raised-button (click)="generate()">Generate</button>
-
-  {{output}}
+        </mat-form-field>
+        <button mat-raised-button (click)="generate()">Generate</button>
+      </form>
+    </div>
+    <div style="width: 45%; display: inline-block">
+      <textarea matTextareaAutosize [matAutosizeMinRows]="30" [matAutosizeMaxRows]="30" matInput value="{{output}}"
+                [readonly]="true"></textarea>
+    </div>
+  </div>
 </div>
 

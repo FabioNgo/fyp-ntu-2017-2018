@@ -30,15 +30,14 @@ export class LexParseActions {
   
   constructor (parser: LexParse) {
     this.parser = parser;
+    // Out.setPrinter(new PrintWriter());
   }
   
   fatalError (message: ErrorMessages, line?: number, col?: number) {
-    if (!line) {
-      this.fatalError(message, this.scanner.currentLine(), -1);
-    } else {
+    // let out = new Out();
+    // out.setPrinter(new PrintWriter());
       this.syntaxError(message, line, col);
-      throw new Error('GeneratorException()');
-    }
+    throw new Error(Out.getPrinter().content.toString());
     
   }
   

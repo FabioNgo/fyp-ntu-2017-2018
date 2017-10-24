@@ -15,4 +15,11 @@ export class PrintWriter {
   public print (line) {
     this.content[this.length - 1] += line;
   }
+  
+  public toString () {
+    let out = '';
+    for (let i = 0; i < this.length; i++) {
+      out = out + this.content[i] + '\n';
+    }
+  }
 }

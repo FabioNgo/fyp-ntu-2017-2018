@@ -46,9 +46,11 @@ export class CountEmitter extends PackEmitter {
   }
   
   public emit (count: number, value: number) {
+    let result = '';
     this.numEntries += count;
     this.breaks();
-    this.emitUC(count);
-    this.emitUC(value + this.translate);
+    result += this.emitUC(count);
+    result += this.emitUC(value + this.translate);
+    return result;
   }
 }

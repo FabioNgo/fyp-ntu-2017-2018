@@ -13,13 +13,14 @@ import {Emitter} from './Emitter';
 
 export class Main {
   public static readonly version = '1.4';
-  
+  public static output: string[];
   public constructor () {
   }
   
   public static generate (input: string | string[]): string[] {
     if (isString(input)) {
       const fileContent = input;
+      // Out = new Out();
       Out.resetCounters();
       const totalTime: Timer = new Timer();
       const time: Timer = new Timer();
@@ -72,17 +73,20 @@ export class Main {
         
         time.start();
         const e = new Emitter(null, parser, dfa);
-        const output = e.emit();
+  
+        Main.output = e.emit();
+        // const l = new LexerGenerator(parser, dfa);
+        // l.emit();
         
         time.stop();
         Out.time(ErrorMessages.WRITE_TOOK, time);
         totalTime.stop();
         Out.time(ErrorMessages.TOTAL_TIME, totalTime);
-        return output;
+        return [''];
       } catch (var12) {
         console.log(var12.stack);
         Out.error(var12.toString(), var12.line, var12.column);
-        throw new GeneratorException();
+        return var12.message;
       }
     } else {
       const files = Main.parseOptions([<string>input]);

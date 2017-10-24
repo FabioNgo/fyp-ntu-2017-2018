@@ -1,12 +1,26 @@
 import {ErrorMessages} from './ErrorMessages';
 import {Timer} from './Timer';
+import {PrintWriter} from './PrintWriter';
+import {isUndefined} from 'util';
 
 export class Out {
   public static NL = '\n';
   private static warnings;
   private static errors;
+  private static out: PrintWriter;
   
   public constructor () {
+  
+  }
+  
+  public static println (message) {
+    // if (Options.verbose) {
+    if (isUndefined(Out.out)) {
+      Out.out = new PrintWriter();
+    }
+    Out.out.println(message);
+    // }
+    
   }
   
   // public static setGUIMode(TextArea text) {
@@ -33,15 +47,11 @@ export class Out {
 //
 // }
   
-  public static println (message) {
-    // if (Options.verbose) {
-    console.log(message + Out.NL);
-    // }
-    
-  }
-  
   public static print (message) {
-    console.log(message);
+    if (isUndefined(Out.out)) {
+      Out.out = new PrintWriter();
+    }
+    Out.out.print(message);
   }
   
   public static checkErrors () {
@@ -68,6 +78,7 @@ export class Out {
   public static resetCounters () {
     Out.errors = 0;
     Out.warnings = 0;
+    Out.out = new PrintWriter();
   }
   
   public static warning (message, line, col) {
@@ -115,7 +126,15 @@ export class Out {
     Out.println(message + time.toString());
   }
   
+  public static getPrinter (): PrintWriter {
+    return Out.out;
+  }
+  
   private static err (message) {
     this.println(message);
+  }
+  
+  public setPrinter (writer: PrintWriter) {
+    Out.out = writer;
   }
 }

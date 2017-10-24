@@ -28,15 +28,17 @@ export abstract class PackEmitter {
     this.nextChunk();
   }
   
-  public emitUC (i: number) {
+  public emitUC (i: number): string {
+    let result = '';
     if (i >= 0 && i <= 65535) {
       const c = new JavaCharacter(i);
-      this.printUC(c);
+      result += this.printUC(c);
       this._UTF8Length += this.UTF8Length(c);
       ++this.linepos;
     } else {
       throw new Error('character value expected');
     }
+    return result;
   }
   
   public breaks () {
@@ -84,22 +86,30 @@ export abstract class PackEmitter {
     ++this.chunks;
   }
   
-  private printUC (c: JavaCharacter) {
+  private printUC (c: JavaCharacter): string {
+    let result = '';
     if (c.code > 255) {
-      this.out += ('\\u');
+      result += ('\\u');
+      // this.out += ('\\u');
       if (c.code < 4096) {
+        result += ('0');
         this.out += ('0');
       }
-      
+  
+      result += (c.code.toString(16));
       this.out += (c.code.toString(16));
     } else {
+      result += ('\\');
       this.out += ('\\');
+      result += (c.code.toString(8));
       this.out += (c.code.toString(8));
     }
+    this.out += result;
+    return result;
     
   }
   
-  private UTF8Length (input: JavaCharacter) {
+  private UTF8Length (input: JavaCharacter): number {
     const value = input.code;
     if (value === 0) {
       return 2;
