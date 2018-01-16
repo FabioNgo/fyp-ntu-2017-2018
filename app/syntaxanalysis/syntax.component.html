@@ -1,6 +1,36 @@
 <!--The content below is only a placeholder and can be replaced.-->
 
-<div style="">
+<div style="display: block; min-width: 100%">
   {{title}}
+  <div style="min-width: 100%">
+    <mat-horizontal-stepper [linear]="true">
+      <mat-step [stepControl]="parserFormGroup">
+        <form [formGroup]="parserFormGroup">
+          <ng-template matStepLabel>Input your beaver file</ng-template>
+          <div id="parser-editor" class="code-editor">{{parserDefault}}</div>
+          <div>
+            <button mat-button matStepperNext>Next</button>
+          </div>
+        </form>
+      </mat-step>
+      <mat-step [stepControl]="testInputFormGroup">
+        <form [formGroup]="testInputFormGroup">
+          <ng-template matStepLabel>Test content</ng-template>
+          <div id="test-editor" class="code-editor">{{testContentDefault}}</div>
+          <div>
+            <button mat-button matStepperPrevious>Back</button>
+            <button mat-button matStepperNext>Next</button>
+          </div>
+        </form>
+      </mat-step>
+      <mat-step>
+        <ng-template matStepLabel>Run Test</ng-template>
+        Press to run test
+        <div>
+          <button mat-button (click)="runtest()">Run Tests</button>
+          <textarea matInput disabled class="console" placeholder="Console" [value]="consoleOutput"></textarea>
+        </div>
+      </mat-step>
+    </mat-horizontal-stepper>
+  </div>
 </div>
-

@@ -2,13 +2,23 @@ import {BrowserModule} from '@angular/platform-browser';
 import {NgModule} from '@angular/core';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {MainComponent} from './main.component';
-import {MatButtonModule, MatGridListModule, MatInputModule, MatTabsModule} from '@angular/material';
+import {MatButtonModule, MatGridListModule, MatInputModule, MatStepperModule, MatTabsModule,} from '@angular/material';
 import {LexicalComponent} from '../lexicalanalysis/lexical.component';
 import {SemanticComponent} from '../semanticanalysis/semantic.component';
 import {CodeComponent} from '../codegeneration/code.component';
 import {SyntaxComponent} from '../syntaxanalysis/syntax.component';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import {HttpClientModule} from '@angular/common/http';
+import {RouterModule, Routes} from '@angular/router';
 
+const appRoutes: Routes = [
+  {path: 'lab1', component: LexicalComponent},
+  {path: 'lab2', component: SyntaxComponent},
+  {path: 'lab3', component: SemanticComponent},
+  {path: 'lab4', component: CodeComponent},
+  
+  // { path: '**', component: MainComponent }
+];
 @NgModule({
   declarations: [
     MainComponent,
@@ -18,10 +28,23 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
     CodeComponent,
   ],
   imports: [
-    BrowserModule, BrowserAnimationsModule, MatInputModule, MatTabsModule, MatButtonModule, FormsModule, ReactiveFormsModule, MatGridListModule,
+    RouterModule.forRoot(
+      appRoutes,
+      // { enableTracing: true } // <-- debugging purposes only
+    ),
+    BrowserModule, BrowserAnimationsModule, MatInputModule, MatTabsModule, MatButtonModule, FormsModule, ReactiveFormsModule, MatGridListModule, MatStepperModule, HttpClientModule,
   ],
   providers: [],
   bootstrap: [MainComponent]
 })
 export class MainModule {
+  constructor () {
+    MainModule._token = Date.now().toString(10);
+  }
+  
+  private static _token: string;
+  
+  static get token (): string {
+    return this._token;
+  }
 }

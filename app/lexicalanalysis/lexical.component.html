@@ -3,22 +3,49 @@
 <div style="display: block; min-width: 100%">
   {{title}}
   <div style="min-width: 100%">
+    <mat-horizontal-stepper [linear]="true">
+      <mat-step [stepControl]="jflexFormGroup">
+        <form [formGroup]="jflexFormGroup">
+          <ng-template matStepLabel>Input your Jflex File</ng-template>
+          <!--<mat-form-field style="min-width: 100%">-->
+          <!--<div>-->
+          <!--<pre>-->
+          <!--<code class="java">-->
+          <!--<textarea class="lined code-editor java" matInput   placeholder="Jflex File content" formControlName="jflexCtrl"-->
+          <!--[value]="jflexDefault">-->
+          <!--</textarea>-->
+          <div id="jflex-editor" class="code-editor">{{jflexDefault}}</div>
+          <!--</code>-->
+          <!--</pre>-->
 
-
-    <div style="width: 45%; display: inline-block">
-      <form [formGroup]="jflexInputGroup">
-        <mat-form-field style="display: block; min-width: 100%">
-      <textarea matTextareaAutosize required [matAutosizeMinRows]="35" [matAutosizeMaxRows]="35"
-                formControlName="jflexInputContent" matInput
-                placeholder="JflexInputContent"></textarea>
-        </mat-form-field>
-        <button mat-raised-button (click)="generate()">Generate</button>
-      </form>
-    </div>
-    <div style="width: 45%; display: inline-block">
-      <textarea matTextareaAutosize [matAutosizeMinRows]="30" [matAutosizeMaxRows]="30" matInput value="{{output}}"
-                [readonly]="true"></textarea>
-    </div>
+          <!--</div>-->
+          <!--</mat-form-field>-->
+          <div>
+            <button mat-button matStepperNext>Next</button>
+          </div>
+        </form>
+      </mat-step>
+      <mat-step [stepControl]="testInputFormGroup">
+        <form [formGroup]="testInputFormGroup">
+          <ng-template matStepLabel>Test content</ng-template>
+          <!--<mat-form-field style="min-width: 100%">-->
+          <div id="test-editor" class="code-editor">{{testContentDefault}}</div>
+          <!--</mat-form-field>-->
+          <div>
+            <button mat-button matStepperPrevious>Back</button>
+            <button mat-button matStepperNext>Next</button>
+          </div>
+        </form>
+      </mat-step>
+      <mat-step>
+        <ng-template matStepLabel>Run Test</ng-template>
+        Press to run test
+        <div>
+          <button mat-button (click)="runtest()">Run Tests</button>
+          <textarea disabled class="console" matInput placeholder="Console" [value]="consoleOutput"
+                    contenteditable="false"></textarea>
+        </div>
+      </mat-step>
+    </mat-horizontal-stepper>
   </div>
 </div>
-
