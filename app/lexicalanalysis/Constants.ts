@@ -32,17 +32,17 @@ import static frontend.Token.Type.*;
 	 *       but they should not be part of the lexeme.
 	*/
 	private Token token(Token.Type type, String text) {
-	
+	  //TO DO
 	}
 %}
 
 /* This definition may come in handy. If you wish, you can add more definitions here. Added */
 WhiteSpace = [ ] | \\t | \\f | \\n | \\r
-
+//TO DO
 
 %%
 /* put in your rules here.    */
-
+//TO DO
 
 /* You don't need to change anything below this line. */
 .							{ throw new Error("unexpected character '" + yytext() + "'"); }

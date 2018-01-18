@@ -5,10 +5,10 @@ import {Constants} from './Constants';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {MainComponent} from '../main/main.component';
 import 'jquery';
+import {EditorUtils} from '../Utilities/EditorUtils';
 // import 'require';
 declare var ace: any;
 declare var $: any;
-declare var UndoManager: any;
 
 @Component({
   selector: 'app-lexical-analysis',
@@ -112,105 +112,28 @@ export class LexicalComponent {
     return result;
   }
   
-  private updateReadonlySection (editor, readonlyArray, markerIdArray) {
-    const session = editor.getSession();
-    for (let i = 0; i < readonlyArray.length; i++) {
-      const range = editor.getSelectionRange().clone();
-      session.removeGutterDecoration(i, 'readonly');
-      session.removeMarker(markerIdArray[i]);
-      range.setStart(i, 0);
-      range.setEnd(i, 10);
-      if (readonlyArray[i]) {
-        
-        session.addGutterDecoration(i, 'readonly');
-        range.id = session.addMarker(range, 'readonly-marker', 'fullLine', false);
-      } else {
-        // session.addGutterDecoration(i, '');
-        range.id = session.addMarker(range, '', 'fullLine', false);
-      }
-      markerIdArray[i] = range.id;
-    }
-  }
-  
   private jflexEditorIni () {
     const jflex_editor = ace.edit('jflex-editor');
     
     jflex_editor.setTheme('ace/theme/chrome');
     const session = jflex_editor.getSession();
-    
-    const undoManager = session.getUndoManager();
-    const document = session.getDocument();
     const selection = session.getSelection();
-    let oldCursorPos = selection.getCursor();
+    const oldCursorPos = selection.getCursor();
     session.setMode('ace/mode/java');
-    const jflexLines = this.jflexDefault.split('\n');
-    for (let i = 0; i < jflexLines.length; i++) {
-      if (jflexLines[i].includes('TO DO')) {
-        this.jflexReadonly[i] = false;
-        continue;
-      }
-      this.jflexReadonly[i] = true;
-    }
-    this.updateReadonlySection(jflex_editor, this.jflexReadonly, this.jflexIdMarker);
+    this.jflexReadonly = EditorUtils.iniReadOnlyArray(this.jflexDefault, 'TO DO');
+    EditorUtils.updateReadonlySection(jflex_editor, this.jflexReadonly, this.jflexIdMarker);
     const self = this;
     
     selection.on('changeCursor', function (e) {
-      const cursor = selection.getCursor();
-      if (self.jflexReadonly[cursor.row]) {
-        selection.moveCursorTo(oldCursorPos.row, oldCursorPos.column, false);
-      } else {
-        oldCursorPos = cursor;
-      }
+      EditorUtils.cursorChangeEventHandler(jflex_editor, self.jflexReadonly, oldCursorPos);
       
     });
     selection.on('changeSelection', function (e) {
-      const anchor = selection.getSelectionAnchor();
-      if (self.jflexReadonly[anchor.row]) {
-        selection.clearSelection();
-      }
+      EditorUtils.selectionChangeEventHandler(jflex_editor, self.jflexReadonly);
       
     });
     jflex_editor.on('change', function (e) {
-      console.log(e);
-      if (e.handled !== undefined) {
-        return;
-      }
-      e.handled = true;
-      // console.log(self.jflexReadonly);
-      const start = e.start;
-      const end = e.end;
-      const diff = end.row - start.row;
-      if (diff === 0) {
-        return;
-      }
-      if (e.action === 'insert') {
-        if (self.jflexReadonly[start.row]) {
-          return;
-        }
-        // shift readonly section
-        
-        
-        for (let i = self.jflexReadonly.length - 1; i >= end.row; i--) {
-          self.jflexReadonly[i + diff] = self.jflexReadonly[i];
-          // console.log(undoManager.$undoStack);
-        }
-        for (let i = start.row; i <= end.row; i++) {
-          self.jflexReadonly[i] = false;
-        }
-        
-      }
-      if (e.action === 'remove') {
-        for (let i = self.jflexReadonly.length - 1; i > end.row; i--) {
-          self.jflexReadonly[i - diff] = self.jflexReadonly[i];
-          // console.log(undoManager.$undoStack);
-        }
-        // for (let i = start.row; i <= end.row; i++) {
-        //   self.jflexReadonly[i] = false;
-        // }
-        self.jflexReadonly = self.jflexReadonly.slice(0, -diff);
-      }
-      
-      self.updateReadonlySection(jflex_editor, self.jflexReadonly, self.jflexIdMarker);
+      EditorUtils.documentChangeEventHandler(e, jflex_editor, self.jflexReadonly, self.jflexIdMarker);
       
     });
     
