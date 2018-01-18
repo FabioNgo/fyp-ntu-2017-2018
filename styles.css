@@ -14,3 +14,17 @@
   width: 900px;
   height: 500px;
 }
+
+.readonly {
+  color: white;
+  background-color: black;
+}
+
+.readonly-marker {
+  background-color: #c0c0c0;
+}
+
+.editable {
+  color: inherit;
+  background-color: inherit;
+}
