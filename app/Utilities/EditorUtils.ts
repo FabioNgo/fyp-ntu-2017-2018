@@ -1,3 +1,6 @@
+import {MainComponent} from '../main/main.component';
+import {HttpClient, HttpHeaders} from '@angular/common/http';
+
 export class EditorUtils {
   static updateReadonlySection (editor, readonlyArray, markerIdArray) {
     const session = editor.getSession();
@@ -68,8 +71,8 @@ export class EditorUtils {
         return;
       }
       // shift readonly section
-  
-  
+      
+      
       for (let i = readonlyArray.length - 1; i >= start.row; i--) {
         readonlyArray[i + diff] = readonlyArray[i];
         // console.log(undoManager.$undoStack);
@@ -92,5 +95,49 @@ export class EditorUtils {
     }
     
     this.updateReadonlySection(editor, readonlyArray, markerIdsArray);
+  }
+  
+  static runtest (http: HttpClient, generatingContentBody: string[], runContentBody: string[], generateUrl: string, runUrl: string, callback: (output) => void) {
+    // let httpParams: ;
+    let consoleOutput = '';
+    const body = {
+      content: generatingContentBody,
+      'token': MainComponent.token,
+    };
+    const headers = new HttpHeaders();
+    headers.append('Access-Control-Allow-Origin', 'http://localhost:4200');
+    
+    http.post(generateUrl, body, {headers: headers}).subscribe(
+      data => {
+        consoleOutput = 'Generating: \n' + this.readResponse(data);
+        body.content = runContentBody;
+        http.post(runUrl, body, {headers: headers}).subscribe(data1 => {
+          consoleOutput += ('Running: \n' + this.readResponse(data1));
+          callback(consoleOutput);
+        });
+      },
+    )
+    ;
+    
+  }
+  
+  static readResponse (response): string {
+    let result = '';
+    // Compiling
+    const compilingData = response[0];
+    result += '\tCompiling: \n';
+    if (compilingData.error) {
+      result += ('\tError:' + compilingData.errorMessage + '\n');
+    } else {
+      result += ('\tOutput:' + compilingData.outputMessage + '\n');
+    }
+    const runningData = response[1];
+    result += '\tRunning: \n';
+    if (runningData.error) {
+      result += ('\tError:' + runningData.errorMessage + '\n');
+    } else {
+      result += ('\tOutput:' + runningData.outputMessage + '\n');
+    }
+    return result;
   }
 }

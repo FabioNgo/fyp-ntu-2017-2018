@@ -203,34 +203,32 @@ public class LexerTests {
   }
 
   /** Example unit test. */
+  @Test
+	public void testKWs() {
+		// first argument to runtest is the string to lex; the remaining arguments
+		// are the expected tokens
+		runtest("module false\\nreturn while",
+				new Token(MODULE, 0, 0, "module"),
+				new Token(FALSE, 0, 7, "false"),
+				new Token(RETURN, 1, 0, "return"),
+				new Token(WHILE, 1, 7, "while"),
+				new Token(EOF, 1, 12, ""));
+	}
+
+	
+	@Test
+	public void testStringLiteralWithDoubleQuote() {
+		runtest("\\"\\"\\"",
+				(Token)null);
+	}
+	
+	@Test
+	public void testStringLiteralEscapeCharacter() {
+		runtest("\\"\\\\n\\"",
+				new Token(STRING_LITERAL, 0, 0, "\\\\n"),
+				new Token(EOF, 0, 4, ""));
+	}
   //TO DO
 
-}
-`;
-  // public static readonly testDefault = '/** Example unit test. */\n\
-  //     @Test\n\
-  //     public void testKWs() {\n\
-  //       // first argument to runtest is the string to lex; the remaining arguments\n\
-  //       // are the expected tokens\n\
-  //       runtest("module false\\nreturn while",\n\
-  //         new Token(MODULE, 0, 0, "module"),\n\
-  //         new Token(FALSE, 0, 7, "false"),\n\
-  //         new Token(RETURN, 1, 0, "return"),\n\
-  //         new Token(WHILE, 1, 7, "while"),\n\
-  //         new Token(EOF, 1, 12, ""));\n\
-  //     }\n\
-  //   \n\
-  //   \n\
-  //     @Test\n\
-  //     public void testStringLiteralWithDoubleQuote() {\n\
-  //       runtest("\\"\\"\\"",\n\
-  //         (Token)null);\n\
-  //     }\n\
-  //   \n\
-  //     @Test\n\
-  //     public void testStringLiteralEscapeCharacter() {\n\
-  //       runtest("\\"\\\\n\\"",\n\
-  //         new Token(STRING_LITERAL, 0, 0, "\\\\n"),\n\
-  //         new Token(EOF, 0, 4, ""));\n\
-  //     }';
+}`;
 }

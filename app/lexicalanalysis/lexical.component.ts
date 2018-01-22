@@ -2,8 +2,7 @@ import {Component, ElementRef} from '@angular/core';
 import {FormBuilder, FormGroup} from '@angular/forms';
 import 'hammerjs';
 import {Constants} from './Constants';
-import {HttpClient, HttpHeaders} from '@angular/common/http';
-import {MainComponent} from '../main/main.component';
+import {HttpClient} from '@angular/common/http';
 import 'jquery';
 import {EditorUtils} from '../Utilities/EditorUtils';
 // import 'require';
@@ -59,44 +58,10 @@ export class LexicalComponent {
   
   runtest () {
     // let httpParams: ;
-    const body = {
-      content: [this.jflexDefault],
-      'token': MainComponent.token,
-    };
-    const headers = new HttpHeaders();
-    headers.append('Access-Control-Allow-Origin', 'http://localhost:4200');
-    
-    this.http.post(this.generateUrl, body, {headers: headers}).subscribe(
-      data => {
-        this.consoleOutput = 'Generating: \n' + this.readResponse(data);
-        body.content = [this.testContentDefault];
-        this.http.post(this.runUrl, body, {headers: headers}).subscribe(data1 => {
-          this.consoleOutput += ('Running: \n' + this.readResponse(data1));
-        });
-      },
-    )
-    ;
-    
-  }
-  
-  readResponse (response): string {
-    let result = '';
-    // Compiling
-    const compilingData = response[0];
-    result += '\tCompiling: \n';
-    if (compilingData.error) {
-      result += ('\tError:' + compilingData.errorMessage + '\n');
-    } else {
-      result += ('\tOutput:' + compilingData.outputMessage + '\n');
-    }
-    const runningData = response[1];
-    result += '\tRunning: \n';
-    if (runningData.error) {
-      result += ('\tError:' + runningData.errorMessage + '\n');
-    } else {
-      result += ('\tOutput:' + runningData.outputMessage + '\n');
-    }
-    return result;
+    const self = this;
+    EditorUtils.runtest(this.http, [this.jflexDefault], [this.testContentDefault], this.generateUrl, this.runUrl, function (output) {
+      self.consoleOutput = output;
+    });
   }
   
   private jflexEditorIni () {
@@ -142,7 +107,7 @@ export class LexicalComponent {
     
     selection.on('changeCursor', function (e) {
       EditorUtils.cursorChangeEventHandler(test_editor, self.testReadonly, oldCursorPos);
-    
+  
     });
     selection.on('changeSelection', function (e) {
       EditorUtils.selectionChangeEventHandler(test_editor, self.testReadonly);

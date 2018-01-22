@@ -1,12 +1,13 @@
 import {Component, ElementRef} from '@angular/core';
 import {FormBuilder, FormGroup} from '@angular/forms';
 import 'hammerjs';
-import {HttpClient, HttpHeaders} from '@angular/common/http';
+import {HttpClient} from '@angular/common/http';
 import {Constants} from './Constants';
-import {MainComponent} from '../main/main.component';
+import {EditorUtils} from '../Utilities/EditorUtils';
 
 declare var ace: any;
 declare var $: any;
+
 @Component({
   selector: 'app-syntax-analysis',
   templateUrl: './syntax.component.html',
@@ -24,6 +25,10 @@ export class SyntaxComponent {
   generateUrl = 'http://localhost:8080/lab2/generate';
   runUrl = 'http://localhost:8080/lab2/run';
   consoleOutput = '';
+  private parserReadonly = [];
+  private parserIdMarker = [];
+  private testReadonly = [];
+  private testIdMarker = [];
   
   constructor (fb: FormBuilder, http: HttpClient, ele: ElementRef) {
     this.http = http;
@@ -39,69 +44,70 @@ export class SyntaxComponent {
   }
   
   ngAfterViewInit () {
-    // console.log($('#jflex-editor'));
-    let editor = ace.edit('parser-editor');
-    editor.setTheme('ace/theme/chrome');
-    editor.getSession().setMode('ace/mode/java');
-    editor = ace.edit('test-editor');
-    editor.setTheme('ace/theme/chrome');
-    editor.getSession().setMode('ace/mode/java');
+    this.parserEditorIni();
+    this.testEditorIni();
   }
   
   runtest () {
     // let httpParams: ;
-    let value = '';
-    // httpParams = new HttpParams();
-    if (this.parserFormGroup.value.parserCtrl === '') {
-      value = this.parserDefault;
-    } else {
-      value = this.parserFormGroup.value.parserCtrl;
-    }
-    // console.log(value);
-    const body = {
-      content: [value],
-      'token': MainComponent.token,
-    };
-    const headers = new HttpHeaders();
-    headers.append('Access-Control-Allow-Origin', 'http://localhost:4200');
+    const self = this;
+    EditorUtils.runtest(this.http, [this.parserDefault], [this.testContentDefault], this.generateUrl, this.runUrl, function (output) {
+      self.consoleOutput = output;
+    });
+  }
+  
+  private parserEditorIni () {
+    const parser_editor = ace.edit('parser-editor');
     
-    this.http.post(this.generateUrl, body, {headers: headers}).subscribe(
-      data => {
-        this.consoleOutput = 'Generating: \n' + this.readResponse(data);
-        if (this.testInputFormGroup.value.testCtrl === '') {
-          value = this.testContentDefault;
-        } else {
-          value = this.testInputFormGroup.value.testCtrl;
-        }
-        body.content = [value];
-        this.http.post(this.runUrl, body, {headers: headers}).subscribe(data1 => {
-          this.consoleOutput += ('Running: \n' + this.readResponse(data1));
-        });
-      },
-    )
-    ;
+    parser_editor.setTheme('ace/theme/chrome');
+    const session = parser_editor.getSession();
+    const selection = session.getSelection();
+    const document = session.getDocument();
+    const oldCursorPos = selection.getCursor();
+    session.setMode('ace/mode/java');
+    this.parserReadonly = EditorUtils.iniReadOnlyArray(this.parserDefault, 'TO DO');
+    EditorUtils.updateReadonlySection(parser_editor, this.parserReadonly, this.parserIdMarker);
+    const self = this;
+    
+    selection.on('changeCursor', function (e) {
+      EditorUtils.cursorChangeEventHandler(parser_editor, self.parserReadonly, oldCursorPos);
+      
+    });
+    selection.on('changeSelection', function (e) {
+      EditorUtils.selectionChangeEventHandler(parser_editor, self.parserReadonly);
+      
+    });
+    parser_editor.on('change', function (e) {
+      EditorUtils.documentChangeEventHandler(e, parser_editor, self.parserReadonly, self.parserIdMarker);
+      self.parserDefault = document.getValue();
+    });
     
   }
   
-  readResponse (response): string {
-    let result = '';
-    // Compiling
-    const compilingData = response[0];
-    result += '\tCompiling: \n';
-    if (compilingData.error) {
-      result += ('\tError:' + compilingData.errorMessage + '\n');
-    } else {
-      result += ('\tOutput:' + compilingData.outputMessage + '\n');
-    }
-    const runningData = response[1];
-    result += '\tRunning: \n';
-    if (runningData.error) {
-      result += ('\tError:' + runningData.errorMessage + '\n');
-    } else {
-      result += ('\tOutput:' + runningData.outputMessage + '\n');
-    }
-    return result;
+  private testEditorIni () {
+    const test_editor = ace.edit('test-editor');
+    test_editor.setTheme('ace/theme/chrome');
+    const session = test_editor.getSession();
+    session.setMode('ace/mode/java');
+    const document = session.getDocument();
+    const selection = session.getSelection();
+    const oldCursorPos = selection.getCursor();
+    session.setMode('ace/mode/java');
+    this.testReadonly = EditorUtils.iniReadOnlyArray(this.testContentDefault, 'TO DO');
+    EditorUtils.updateReadonlySection(test_editor, this.testReadonly, this.testIdMarker);
+    const self = this;
+    
+    selection.on('changeCursor', function (e) {
+      EditorUtils.cursorChangeEventHandler(test_editor, self.testReadonly, oldCursorPos);
+      
+    });
+    selection.on('changeSelection', function (e) {
+      EditorUtils.selectionChangeEventHandler(test_editor, self.testReadonly);
+      
+    });
+    test_editor.on('change', function (e) {
+      EditorUtils.documentChangeEventHandler(e, test_editor, self.testReadonly, self.testIdMarker);
+      self.testContentDefault = document.getValue();
+    });
   }
-  
-  
 }

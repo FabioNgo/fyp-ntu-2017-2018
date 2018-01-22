@@ -1,9 +1,9 @@
 import {Component, ElementRef} from '@angular/core';
 import 'hammerjs';
-import {HttpClient, HttpHeaders} from '@angular/common/http';
+import {HttpClient} from '@angular/common/http';
 import {FormBuilder, FormGroup} from '@angular/forms';
 import {Constants} from './Constants';
-import {MainComponent} from '../main/main.component';
+import {EditorUtils} from '../Utilities/EditorUtils';
 
 declare var ace: any;
 declare var $: any;
@@ -26,6 +26,13 @@ export class CodeComponent {
   generateUrl = 'http://localhost:8080/lab4/generate';
   runUrl = 'http://localhost:8080/lab4/run';
   consoleOutput = '';
+  private exprReadonly = [];
+  private exprIdMarker = [];
+  private stmtReadonly = [];
+  private stmtIdMarker = [];
+  private testReadonly = [];
+  private testIdMarker = [];
+  
   
   constructor (fb: FormBuilder, http: HttpClient, ele: ElementRef) {
     this.http = http;
@@ -45,6 +52,9 @@ export class CodeComponent {
   
   ngAfterViewInit () {
     // console.log($('#jflex-editor'));
+    this.exprEditorIni();
+    this.stmtEditorIni();
+    this.testEditorIni();
     let editor = ace.edit('expr-editor');
     editor.setTheme('ace/theme/chrome');
     editor.getSession().setMode('ace/mode/java');
@@ -55,64 +65,95 @@ export class CodeComponent {
     editor.setTheme('ace/theme/chrome');
     editor.getSession().setMode('ace/mode/java');
   }
-  
+
   runtest () {
     // let httpParams: ;
-    let value = [];
-    // httpParams = new HttpParams();
-    if (this.exprCodeFormGroup.value.exprCodeCtrl === '') {
-      value[0] = this.exprCodeDefault;
-    } else {
-      value = this.exprCodeFormGroup.value.exprCodeCtrl;
-    }
-    if (this.stmtCodeFormGroup.value.stmtCodeCtrl === '') {
-      value[1] = this.stmtCodeDefault;
-    } else {
-      value = this.stmtCodeFormGroup.value.stmtCodeCtrl;
-    }
-    // console.log(value);
-    const body = {
-      content: value,
-      'token': MainComponent.token,
-    };
-    const headers = new HttpHeaders();
-    headers.append('Access-Control-Allow-Origin', 'http://localhost:4200');
+    const self = this;
+    EditorUtils.runtest(this.http, [this.exprCodeDefault, this.stmtCodeDefault], [this.testContentDefault], this.generateUrl, this.runUrl, function (output) {
+      self.consoleOutput = output;
+    });
+  }
+  
+  private exprEditorIni () {
+    const expr_editor = ace.edit('expr-editor');
     
-    this.http.post(this.generateUrl, body, {headers: headers}).subscribe(
-      data => {
-        this.consoleOutput = 'Generating: \n' + this.readResponse(data);
-        if (this.testInputFormGroup.value.testCtrl === '') {
-          value[0] = this.testContentDefault;
-        } else {
-          value[0] = this.testInputFormGroup.value.testCtrl;
-        }
-        body.content = value;
-        this.http.post(this.runUrl, body, {headers: headers}).subscribe(data1 => {
-          this.consoleOutput += ('Running: \n' + this.readResponse(data1));
-        });
-      },
-    )
-    ;
+    expr_editor.setTheme('ace/theme/chrome');
+    const session = expr_editor.getSession();
+    const selection = session.getSelection();
+    const document = session.getDocument();
+    const oldCursorPos = selection.getCursor();
+    session.setMode('ace/mode/java');
+    this.exprReadonly = EditorUtils.iniReadOnlyArray(this.exprCodeDefault, 'TO DO');
+    EditorUtils.updateReadonlySection(expr_editor, this.exprReadonly, this.exprIdMarker);
+    const self = this;
+    
+    selection.on('changeCursor', function (e) {
+      EditorUtils.cursorChangeEventHandler(expr_editor, self.exprReadonly, oldCursorPos);
+      
+    });
+    selection.on('changeSelection', function (e) {
+      EditorUtils.selectionChangeEventHandler(expr_editor, self.exprReadonly);
+      
+    });
+    expr_editor.on('change', function (e) {
+      EditorUtils.documentChangeEventHandler(e, expr_editor, self.exprReadonly, self.exprIdMarker);
+      self.exprCodeDefault = document.getValue();
+    });
     
   }
   
-  readResponse (response): string {
-    let result = '';
-    // Compiling
-    const compilingData = response[0];
-    result += '\tCompiling: \n';
-    if (compilingData.error) {
-      result += ('\tError:' + compilingData.errorMessage + '\n');
-    } else {
-      result += ('\tOutput:' + compilingData.outputMessage + '\n');
-    }
-    const runningData = response[1];
-    result += '\tRunning: \n';
-    if (runningData.error) {
-      result += ('\tError:' + runningData.errorMessage + '\n');
-    } else {
-      result += ('\tOutput:' + runningData.outputMessage + '\n');
-    }
-    return result;
+  private stmtEditorIni () {
+    const jflex_editor = ace.edit('stmt-editor');
+    
+    jflex_editor.setTheme('ace/theme/chrome');
+    const session = jflex_editor.getSession();
+    const selection = session.getSelection();
+    const document = session.getDocument();
+    const oldCursorPos = selection.getCursor();
+    session.setMode('ace/mode/java');
+    this.stmtReadonly = EditorUtils.iniReadOnlyArray(this.stmtCodeDefault, 'TO DO');
+    EditorUtils.updateReadonlySection(jflex_editor, this.stmtReadonly, this.stmtIdMarker);
+    const self = this;
+    
+    selection.on('changeCursor', function (e) {
+      EditorUtils.cursorChangeEventHandler(jflex_editor, self.stmtReadonly, oldCursorPos);
+      
+    });
+    selection.on('changeSelection', function (e) {
+      EditorUtils.selectionChangeEventHandler(jflex_editor, self.stmtReadonly);
+      
+    });
+    jflex_editor.on('change', function (e) {
+      EditorUtils.documentChangeEventHandler(e, jflex_editor, self.stmtReadonly, self.stmtIdMarker);
+      self.stmtCodeDefault = document.getValue();
+    });
+    
+  }
+  
+  private testEditorIni () {
+    const test_editor = ace.edit('test-editor');
+    test_editor.setTheme('ace/theme/chrome');
+    const session = test_editor.getSession();
+    session.setMode('ace/mode/java');
+    const document = session.getDocument();
+    const selection = session.getSelection();
+    const oldCursorPos = selection.getCursor();
+    session.setMode('ace/mode/java');
+    this.testReadonly = EditorUtils.iniReadOnlyArray(this.testContentDefault, 'TO DO');
+    EditorUtils.updateReadonlySection(test_editor, this.testReadonly, this.testIdMarker);
+    const self = this;
+    
+    selection.on('changeCursor', function (e) {
+      EditorUtils.cursorChangeEventHandler(test_editor, self.testReadonly, oldCursorPos);
+      
+    });
+    selection.on('changeSelection', function (e) {
+      EditorUtils.selectionChangeEventHandler(test_editor, self.testReadonly);
+      
+    });
+    test_editor.on('change', function (e) {
+      EditorUtils.documentChangeEventHandler(e, test_editor, self.testReadonly, self.testIdMarker);
+      self.testContentDefault = document.getValue();
+    });
   }
 }
