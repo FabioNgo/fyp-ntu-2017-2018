@@ -29,6 +29,8 @@ export class LexicalComponent {
   consoleOutput = '';
   jflexReadonly = [];
   jflexIdMarker = [];
+  testReadonly = [];
+  testIdMarker = [];
   // $: JQueryStatic;
   // editor: any;
   constructor (fb: FormBuilder, http: HttpClient, ele: ElementRef) {
@@ -49,26 +51,16 @@ export class LexicalComponent {
   ngAfterViewInit () {
     // console.log($('#jflex-editor'));
     this.jflexEditorIni();
-  
-    const test_editor = ace.edit('test-editor');
-    test_editor.setTheme('ace/theme/chrome');
-    test_editor.getSession().setMode('ace/mode/java');
+    this.testEditorIni();
+    
     // add readonly section
     
   }
   
   runtest () {
     // let httpParams: ;
-    let value = '';
-    // httpParams = new HttpParams();
-    if (this.jflexFormGroup.value.jflexCtrl === '') {
-      value = this.jflexDefault;
-    } else {
-      value = this.jflexFormGroup.value.jflexCtrl;
-    }
-    // console.log(value);
     const body = {
-      content: [value],
+      content: [this.jflexDefault],
       'token': MainComponent.token,
     };
     const headers = new HttpHeaders();
@@ -77,12 +69,7 @@ export class LexicalComponent {
     this.http.post(this.generateUrl, body, {headers: headers}).subscribe(
       data => {
         this.consoleOutput = 'Generating: \n' + this.readResponse(data);
-        if (this.testInputFormGroup.value.testCtrl === '') {
-          value = this.testContentDefault;
-        } else {
-          value = this.testInputFormGroup.value.testCtrl;
-        }
-        body.content = [value];
+        body.content = [this.testContentDefault];
         this.http.post(this.runUrl, body, {headers: headers}).subscribe(data1 => {
           this.consoleOutput += ('Running: \n' + this.readResponse(data1));
         });
@@ -118,6 +105,7 @@ export class LexicalComponent {
     jflex_editor.setTheme('ace/theme/chrome');
     const session = jflex_editor.getSession();
     const selection = session.getSelection();
+    const document = session.getDocument();
     const oldCursorPos = selection.getCursor();
     session.setMode('ace/mode/java');
     this.jflexReadonly = EditorUtils.iniReadOnlyArray(this.jflexDefault, 'TO DO');
@@ -134,8 +122,35 @@ export class LexicalComponent {
     });
     jflex_editor.on('change', function (e) {
       EditorUtils.documentChangeEventHandler(e, jflex_editor, self.jflexReadonly, self.jflexIdMarker);
+      self.jflexDefault = document.getValue();
+    });
+  
+  }
+  
+  private testEditorIni () {
+    const test_editor = ace.edit('test-editor');
+    test_editor.setTheme('ace/theme/chrome');
+    const session = test_editor.getSession();
+    session.setMode('ace/mode/java');
+    const document = session.getDocument();
+    const selection = session.getSelection();
+    const oldCursorPos = selection.getCursor();
+    session.setMode('ace/mode/java');
+    this.testReadonly = EditorUtils.iniReadOnlyArray(this.testContentDefault, 'TO DO');
+    EditorUtils.updateReadonlySection(test_editor, this.testReadonly, this.testIdMarker);
+    const self = this;
+    
+    selection.on('changeCursor', function (e) {
+      EditorUtils.cursorChangeEventHandler(test_editor, self.testReadonly, oldCursorPos);
+    
+    });
+    selection.on('changeSelection', function (e) {
+      EditorUtils.selectionChangeEventHandler(test_editor, self.testReadonly);
       
     });
-    
+    test_editor.on('change', function (e) {
+      EditorUtils.documentChangeEventHandler(e, test_editor, self.testReadonly, self.testIdMarker);
+      self.testContentDefault = document.getValue();
+    });
   }
 }

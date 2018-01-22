@@ -68,9 +68,9 @@ export class EditorUtils {
         return;
       }
       // shift readonly section
-      
-      
-      for (let i = readonlyArray.length - 1; i >= end.row; i--) {
+  
+  
+      for (let i = readonlyArray.length - 1; i >= start.row; i--) {
         readonlyArray[i + diff] = readonlyArray[i];
         // console.log(undoManager.$undoStack);
       }
@@ -81,7 +81,7 @@ export class EditorUtils {
     }
     if (e.action === 'remove') {
       // for (let i = readonlyArray.length - 1; i > end.row; i--) {
-      for (let i = end.row; i < readonlyArray.length - diff; i++) {
+      for (let i = start.row; i < readonlyArray.length - diff; i++) {
         readonlyArray[i] = readonlyArray[i + diff];
         // console.log(undoManager.$undoStack);
       }
