@@ -2,7 +2,17 @@ import {BrowserModule} from '@angular/platform-browser';
 import {NgModule} from '@angular/core';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {MainComponent} from './main.component';
-import {MatButtonModule, MatGridListModule, MatInputModule, MatStepperModule, MatTabsModule,} from '@angular/material';
+import {
+  MatButtonModule,
+  MatCardModule,
+  MatGridListModule,
+  MatIconModule,
+  MatInputModule,
+  MatListModule,
+  MatStepperModule,
+  MatTableModule,
+  MatTabsModule,
+} from '@angular/material';
 import {LexicalComponent} from '../lexicalanalysis/lexical.component';
 import {SemanticComponent} from '../semanticanalysis/semantic.component';
 import {CodeComponent} from '../codegeneration/code.component';
@@ -12,13 +22,14 @@ import {HttpClientModule} from '@angular/common/http';
 import {RouterModule, Routes} from '@angular/router';
 
 const appRoutes: Routes = [
-  {path: 'lab1', component: LexicalComponent},
-  {path: 'lab2', component: SyntaxComponent},
-  {path: 'lab3', component: SemanticComponent},
-  {path: 'lab4', component: CodeComponent},
+  // {path: 'lab1', component: LexicalComponent},
+  // {path: 'lab2', component: SyntaxComponent},
+  // {path: 'lab3', component: SemanticComponent},
+  // {path: 'lab4', component: CodeComponent},
   
   // { path: '**', component: MainComponent }
 ];
+
 @NgModule({
   declarations: [
     MainComponent,
@@ -32,10 +43,11 @@ const appRoutes: Routes = [
       appRoutes,
       // { enableTracing: true } // <-- debugging purposes only
     ),
-    BrowserModule, BrowserAnimationsModule, MatInputModule, MatTabsModule, MatButtonModule, FormsModule, ReactiveFormsModule, MatGridListModule, MatStepperModule, HttpClientModule,
+    BrowserModule, BrowserAnimationsModule, MatInputModule, MatTabsModule, MatButtonModule, FormsModule,
+    ReactiveFormsModule, MatGridListModule, MatStepperModule, HttpClientModule, MatCardModule, MatIconModule, MatListModule, MatTableModule,
   ],
   providers: [],
-  bootstrap: [MainComponent]
+  bootstrap: [MainComponent],
 })
 export class MainModule {
   constructor () {
