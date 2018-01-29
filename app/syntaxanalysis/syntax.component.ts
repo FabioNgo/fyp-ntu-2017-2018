@@ -1,9 +1,12 @@
-import {Component, ElementRef} from '@angular/core';
-import {FormBuilder, FormGroup} from '@angular/forms';
+import {Component} from '@angular/core';
+import {FormControl} from '@angular/forms';
 import 'hammerjs';
 import {HttpClient} from '@angular/common/http';
-import {Constants} from './Constants';
-import {EditorUtils} from '../Utilities/EditorUtils';
+import {Rule} from '../Models/Rule';
+import {RulesManager} from '../Models/RulesManager';
+import {Terminal} from "../Models/Terminal";
+import {TerminalsManager} from "../Models/TerminalsManager";
+import {MatTableDataSource} from "@angular/material";
 
 declare var ace: any;
 declare var $: any;
@@ -14,100 +17,66 @@ declare var $: any;
   styleUrls: ['./syntax.component.css'],
 })
 export class SyntaxComponent {
-  parserFormGroup: FormGroup;
-  testInputFormGroup: FormGroup;
-  parserDefault = '';
-  testContentDefault = '';
+  startSymbolFormControl: FormControl;
   title = 'Syntax Analysis Place Holder';
   http: HttpClient;
   output = '';
   content = [];
   generateUrl = 'http://localhost:8080/lab2/generate';
   runUrl = 'http://localhost:8080/lab2/run';
-  consoleOutput = '';
-  private parserReadonly = [];
-  private parserIdMarker = [];
-  private testReadonly = [];
-  private testIdMarker = [];
-  
-  constructor (fb: FormBuilder, http: HttpClient, ele: ElementRef) {
-    this.http = http;
-    this.parserFormGroup = fb.group({
-      'parserCtrl': '',
-    });
-    this.parserDefault = Constants.parserDefault;
-    this.testInputFormGroup = fb.group({
-      'testCtrl': '',
-    });
-    this.testContentDefault = Constants.testDefault;
-    
-  }
-  
-  ngAfterViewInit () {
-    this.parserEditorIni();
-    this.testEditorIni();
-  }
-  
-  runtest () {
-    // let httpParams: ;
+  rules: Rule[];
+  startSymbol: string;
+  terminals: Terminal[];
+  identifierFormControl: FormControl;
+  ruleFormControl: FormControl;
+  nonTerminalDataSource: MatTableDataSource<Terminal>;
+  nonTerminalDisplayedColumns = ['Identifier', 'Rule', 'Remove'];
+
+  constructor() {
+    this.rules = RulesManager.getInstance().getRules();
+    this.terminals = TerminalsManager.getInstance().getTerminals();
+    this.nonTerminalDataSource = new MatTableDataSource<Terminal>(this.terminals);
+    this.identifierFormControl = new FormControl('');
+    this.ruleFormControl = new FormControl('');
+    this.startSymbolFormControl = new FormControl("");
     const self = this;
-    EditorUtils.runtest(this.http, [this.parserDefault], [this.testContentDefault], this.generateUrl, this.runUrl, function (output) {
-      self.consoleOutput = output;
+    RulesManager.getInstance().addRulesChangeListener({
+      update() {
+        self.rules = RulesManager.getInstance().getRules();
+      }
+    });
+    TerminalsManager.getInstance().addTerminalsChangeListener({
+      update() {
+        self.nonTerminalDataSource.data = TerminalsManager.getInstance().getTerminals();
+      }
     });
   }
-  
-  private parserEditorIni () {
-    const parser_editor = ace.edit('parser-editor');
-    
-    parser_editor.setTheme('ace/theme/chrome');
-    const session = parser_editor.getSession();
-    const selection = session.getSelection();
-    const document = session.getDocument();
-    const oldCursorPos = selection.getCursor();
-    session.setMode('ace/mode/java');
-    this.parserReadonly = EditorUtils.iniReadOnlyArray(this.parserDefault, 'TO DO');
-    EditorUtils.updateReadonlySection(parser_editor, this.parserReadonly, this.parserIdMarker);
-    const self = this;
-    
-    selection.on('changeCursor', function (e) {
-      EditorUtils.cursorChangeEventHandler(parser_editor, self.parserReadonly, oldCursorPos);
-      
-    });
-    selection.on('changeSelection', function (e) {
-      EditorUtils.selectionChangeEventHandler(parser_editor, self.parserReadonly);
-      
-    });
-    parser_editor.on('change', function (e) {
-      EditorUtils.documentChangeEventHandler(e, parser_editor, self.parserReadonly, self.parserIdMarker);
-      self.parserDefault = document.getValue();
-    });
-    
+
+  ngAfterViewInit() {
+
   }
-  
-  private testEditorIni () {
-    const test_editor = ace.edit('test-editor');
-    test_editor.setTheme('ace/theme/chrome');
-    const session = test_editor.getSession();
-    session.setMode('ace/mode/java');
-    const document = session.getDocument();
-    const selection = session.getSelection();
-    const oldCursorPos = selection.getCursor();
-    session.setMode('ace/mode/java');
-    this.testReadonly = EditorUtils.iniReadOnlyArray(this.testContentDefault, 'TO DO');
-    EditorUtils.updateReadonlySection(test_editor, this.testReadonly, this.testIdMarker);
-    const self = this;
-    
-    selection.on('changeCursor', function (e) {
-      EditorUtils.cursorChangeEventHandler(test_editor, self.testReadonly, oldCursorPos);
-      
+
+  addStartSymbol() {
+    if (this.startSymbolFormControl.value === "" || this.startSymbolFormControl.value === undefined) {
+      return;
+    }
+    this.startSymbol = this.startSymbolFormControl.value;
+    this.startSymbolFormControl.disable();
+  }
+
+  removeStartSymbol() {
+    this.startSymbol = "";
+    this.startSymbolFormControl.enable();
+  }
+
+  addNonTerminal() {
+    TerminalsManager.getInstance().addTerminal({
+      rule: this.ruleFormControl.value,
+      identifier: this.identifierFormControl.value
     });
-    selection.on('changeSelection', function (e) {
-      EditorUtils.selectionChangeEventHandler(test_editor, self.testReadonly);
-      
-    });
-    test_editor.on('change', function (e) {
-      EditorUtils.documentChangeEventHandler(e, test_editor, self.testReadonly, self.testIdMarker);
-      self.testContentDefault = document.getValue();
-    });
+  }
+
+  removeNonterminal(row) {
+    TerminalsManager.getInstance().removeTerminal(row);
   }
 }

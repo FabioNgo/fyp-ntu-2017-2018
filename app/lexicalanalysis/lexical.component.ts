@@ -3,19 +3,14 @@ import {FormControl} from '@angular/forms';
 import 'hammerjs';
 import 'jquery';
 import {MatTableDataSource} from '@angular/material';
+import {RulesManager} from '../Models/RulesManager';
+import {Rule} from '../Models/Rule';
+import {DefinitionsManager} from '../Models/DefinitionsManager';
+import {Definition} from '../Models/Definition';
 // import 'require';
 declare var ace: any;
 declare var $: any;
 
-interface Definitions {
-  identifier: string;
-  expression: string;
-}
-
-interface Rules {
-  keyword: string;
-  token: string;
-}
 
 @Component({
   selector: 'app-lexical-analysis',
@@ -27,103 +22,69 @@ export class LexicalComponent {
   defExprFormControl: FormControl;
   keywordFormControl: FormControl;
   tokenFormControl: FormControl;
-  definitions = [];
-  rules = [];
-  definitionsDataSource: MatTableDataSource<Definitions>;
-  rulesDataSource: MatTableDataSource<Rules>;
+  definitionsDataSource: MatTableDataSource<Definition>;
+  rulesDataSource: MatTableDataSource<Rule>;
   defDisplayedColumns = ['Identifier', 'Expression', 'Remove'];
   ruleDisplayedColumns = ['Keyword', 'Token', 'Remove'];
   // $: JQueryStatic;
   // editor: any;
-  constructor () {
-    
-    this.definitionsDataSource = new MatTableDataSource(this.definitions);
-    this.rulesDataSource = new MatTableDataSource(this.rules);
+  constructor() {
+
+    this.definitionsDataSource = new MatTableDataSource(DefinitionsManager.getInstance().getDefinitions());
+    this.rulesDataSource = new MatTableDataSource(RulesManager.getInstance().getRules());
     this.defExprFormControl = new FormControl('');
     this.defIdFormControl = new FormControl('');
     this.keywordFormControl = new FormControl('');
     this.tokenFormControl = new FormControl('');
-  }
-  
-  addRule () {
-    if (this.keywordFormControl.value === undefined || this.tokenFormControl.value === undefined || this.keywordFormControl.value === '' || this.tokenFormControl.value === '') {
-    
-    } else {
-      for (let i = 0; i < this.rules.length; i++) {
-        if (this.rules[i].keyword === this.keywordFormControl.value || this.rules[i].token === this.tokenFormControl.value) {
-          return;
-        } else {
-        
-        }
+    const self = this;
+    RulesManager.getInstance().addRulesChangeListener({
+      update() {
+        self.rulesDataSource.data = RulesManager.getInstance().getRules();
       }
-      this.rules.push({
-        keyword: this.keywordFormControl.value,
-        token: this.tokenFormControl.value,
-      })
-      ;
-      this.updateRulesData();
-    }
-  }
-  
-  addDefinition () {
-    // console.log(this.identifier);
-    if (this.defIdFormControl.value === undefined || this.defExprFormControl.value === undefined || this.defIdFormControl.value === '' || this.defExprFormControl.value === '') {
-    
-    } else {
-      for (let i = 0; i < this.definitions.length; i++) {
-        if (this.definitions[i].identifier === this.defIdFormControl.value) {
-          return;
-        } else {
-        
-        }
+    });
+    DefinitionsManager.getInstance().addDefinitionsChangeListener({
+      update() {
+        self.definitionsDataSource.data = DefinitionsManager.getInstance().getDefinitions();
       }
-      this.definitions.push({
-        identifier: this.defIdFormControl.value,
-        expression: this.defExprFormControl.value,
-      })
-      ;
-      this.updateDefinitionsData();
-    }
-    
+    });
   }
-  
-  updateDefinitionsData () {
-    this.definitionsDataSource.data = this.definitions;
+
+  addRule() {
+    const rule = {
+      keyword: this.keywordFormControl.value,
+      token: this.tokenFormControl.value,
+    };
+    RulesManager.getInstance().addRule(rule);
+
   }
-  
-  ngAfterViewInit () {
+
+  addDefinition() {
+    DefinitionsManager.getInstance().addDefinition({
+      identifier: this.defIdFormControl.value,
+      expression: this.defExprFormControl.value,
+    })
+    ;
+  }
+
+
+  ngAfterViewInit() {
     // console.log($('#jflex-editor'));
     // this.jflexEditorIni();
     // this.testEditorIni();
-    
+
     // add readonly section
-    
+
   }
-  
-  
-  removeDefinition (row) {
-    for (let i = 0; i < this.definitions.length; i++) {
-      if (this.definitions[i].identifier === row.identifier) {
-        this.definitions.splice(i, 1);
-        break;
-      }
-    }
-    this.updateDefinitionsData();
-    
+
+
+  removeDefinition(row) {
+    DefinitionsManager.getInstance().removeDefinition(row);
+
   }
-  
-  removeRule (row) {
-    for (let i = 0; i < this.rules.length; i++) {
-      if (this.rules[i].keyword === row.keyword) {
-        this.rules.splice(i, 1);
-        break;
-      }
-    }
-    this.updateRulesData();
-    
-  }
-  
-  private updateRulesData () {
-    this.rulesDataSource.data = this.rules;
+
+  removeRule(row) {
+    RulesManager.getInstance().removeRule(row);
+
+
   }
 }

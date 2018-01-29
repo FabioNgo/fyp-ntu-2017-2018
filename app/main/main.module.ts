@@ -5,6 +5,7 @@ import {MainComponent} from './main.component';
 import {
   MatButtonModule,
   MatCardModule,
+  MatChipsModule,
   MatGridListModule,
   MatIconModule,
   MatInputModule,
@@ -26,7 +27,7 @@ const appRoutes: Routes = [
   // {path: 'lab2', component: SyntaxComponent},
   // {path: 'lab3', component: SemanticComponent},
   // {path: 'lab4', component: CodeComponent},
-  
+
   // { path: '**', component: MainComponent }
 ];
 
@@ -45,6 +46,7 @@ const appRoutes: Routes = [
     ),
     BrowserModule, BrowserAnimationsModule, MatInputModule, MatTabsModule, MatButtonModule, FormsModule,
     ReactiveFormsModule, MatGridListModule, MatStepperModule, HttpClientModule, MatCardModule, MatIconModule, MatListModule, MatTableModule,
+    MatChipsModule
   ],
   providers: [],
   bootstrap: [MainComponent],
@@ -53,9 +55,9 @@ export class MainModule {
   constructor () {
     MainModule._token = Date.now().toString(10);
   }
-  
+
   private static _token: string;
-  
+
   static get token (): string {
     return this._token;
   }
