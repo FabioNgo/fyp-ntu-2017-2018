@@ -24,6 +24,7 @@ export class LexicalComponent {
   tokenFormControl: FormControl;
   definitionsDataSource: MatTableDataSource<Definition>;
   rulesDataSource: MatTableDataSource<Rule>;
+  rules;
   defDisplayedColumns = ['Identifier', 'Expression', 'Remove'];
   ruleDisplayedColumns = ['Keyword', 'Token', 'Remove'];
   // $: JQueryStatic;
@@ -31,7 +32,7 @@ export class LexicalComponent {
   constructor() {
 
     this.definitionsDataSource = new MatTableDataSource(DefinitionsManager.getInstance().getDefinitions());
-    this.rulesDataSource = new MatTableDataSource(RulesManager.getInstance().getRules());
+    this.rules = RulesManager.getInstance().getRules();
     this.defExprFormControl = new FormControl('');
     this.defIdFormControl = new FormControl('');
     this.keywordFormControl = new FormControl('');
@@ -39,7 +40,7 @@ export class LexicalComponent {
     const self = this;
     RulesManager.getInstance().addRulesChangeListener({
       update() {
-        self.rulesDataSource.data = RulesManager.getInstance().getRules();
+        this.rules = RulesManager.getInstance().getRules();
       }
     });
     DefinitionsManager.getInstance().addDefinitionsChangeListener({
@@ -52,8 +53,11 @@ export class LexicalComponent {
   addRule() {
     const rule = {
       keyword: this.keywordFormControl.value,
-      token: this.tokenFormControl.value,
+      token: "",
+      isIdentifier: false,
+      ignore: false
     };
+    this.keywordFormControl.setValue("");
     RulesManager.getInstance().addRule(rule);
 
   }
@@ -64,6 +68,8 @@ export class LexicalComponent {
       expression: this.defExprFormControl.value,
     })
     ;
+    this.defIdFormControl.setValue("");
+    this.defExprFormControl.setValue("");
   }
 
 

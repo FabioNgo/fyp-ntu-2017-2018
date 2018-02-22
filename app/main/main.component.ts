@@ -8,11 +8,12 @@ declare var $: any;
   styleUrls: ['./main.component.css']
 })
 export class MainComponent {
-  public static readonly token = Date.now().toString(10);
+  // public static readonly token = Date.now().toString(10);
+  public static readonly token = "140393";
   title = 'FYP';
-  
+
   constructor () {
-  
+
   }
-  
+
 }

@@ -6,10 +6,13 @@ import {
   MatButtonModule,
   MatCardModule,
   MatChipsModule,
+  MatDialogModule,
   MatGridListModule,
   MatIconModule,
   MatInputModule,
   MatListModule,
+  MatRadioModule,
+  MatSnackBarModule,
   MatStepperModule,
   MatTableModule,
   MatTabsModule,
@@ -17,7 +20,7 @@ import {
 import {LexicalComponent} from '../lexicalanalysis/lexical.component';
 import {SemanticComponent} from '../semanticanalysis/semantic.component';
 import {CodeComponent} from '../codegeneration/code.component';
-import {SyntaxComponent} from '../syntaxanalysis/syntax.component';
+import {EditTerminalDialog, SyntaxComponent} from '../syntaxanalysis/syntax.component';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {HttpClientModule} from '@angular/common/http';
 import {RouterModule, Routes} from '@angular/router';
@@ -38,6 +41,10 @@ const appRoutes: Routes = [
     SemanticComponent,
     SyntaxComponent,
     CodeComponent,
+    EditTerminalDialog
+  ],
+  entryComponents: [
+    EditTerminalDialog
   ],
   imports: [
     RouterModule.forRoot(
@@ -46,19 +53,20 @@ const appRoutes: Routes = [
     ),
     BrowserModule, BrowserAnimationsModule, MatInputModule, MatTabsModule, MatButtonModule, FormsModule,
     ReactiveFormsModule, MatGridListModule, MatStepperModule, HttpClientModule, MatCardModule, MatIconModule, MatListModule, MatTableModule,
-    MatChipsModule
+    MatChipsModule, MatRadioModule, MatSnackBarModule, MatDialogModule
   ],
   providers: [],
   bootstrap: [MainComponent],
 })
 export class MainModule {
-  constructor () {
-    MainModule._token = Date.now().toString(10);
+  constructor() {
+    // MainModule._token = Date.now().toString(10);
+    MainModule._token = "140393";
   }
 
   private static _token: string;
 
-  static get token (): string {
+  static get token(): string {
     return this._token;
   }
 }

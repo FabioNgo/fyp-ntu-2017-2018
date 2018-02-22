@@ -8,7 +8,25 @@ export class DefinitionsManager {
   private definitionsChangeListeners: DefinitionsChangeListener[];
 
   constructor() {
-    this.definitions = [];
+    this.definitions = [
+      {
+        identifier: "Identifier",
+        expression: "[a-zA-Z][a-zA-Z0-9_]*",
+      },
+      {
+        identifier: "WhiteSpace",
+        expression: '[ ] | \\t | \\f | \\n | \\r',
+      },
+      {
+        identifier: "IntLiteral",
+        expression: '[0-9]+',
+      },
+      {
+        identifier: "StringLiteral",
+        expression: '\\"([^\\"\\n])*\\"',
+      }
+
+    ];
     this.definitionsChangeListeners = [];
   }
 

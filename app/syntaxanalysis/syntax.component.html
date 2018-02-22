@@ -2,32 +2,8 @@
 
 <div style="display: block; min-width: 100%">
   <mat-card id="syntax-declaration">
-    <mat-card-title>Terminals</mat-card-title>
-    <mat-card-subtitle>Terminals to use in rules declaration</mat-card-subtitle>
-    <mat-card-content>
-      <mat-chip-list>
-        <mat-chip *ngFor="let rule of rules">{{rule.token}}</mat-chip>
-      </mat-chip-list>
-    </mat-card-content>
-    <mat-card-title>
-      Start symbol:
-    </mat-card-title>
-    <mat-card-content>
-      <mat-form-field>
-        <input matInput id="startSymbol" placeholder="Start symbol" required [formControl]="startSymbolFormControl"
-               value="">
-        <mat-hint>E.g: Module</mat-hint>
-      </mat-form-field>
-
-      <button mat-icon-button (click)="addStartSymbol()" *ngIf='startSymbol === "" || startSymbol === undefined'>
-        <mat-icon aria-label="Add symbol">add</mat-icon>
-      </button>
-      <button mat-icon-button (click)="removeStartSymbol()" *ngIf='startSymbol !== "" && startSymbol !== undefined'>
-        <mat-icon aria-label="Remove symbol">remove</mat-icon>
-      </button>
-    </mat-card-content>
-    <mat-card-title>Rules</mat-card-title>
-    <mat-card-subtitle>Put your rules here. You only use terminals declared above</mat-card-subtitle>
+    <mat-card-title>Syntax</mat-card-title>
+    <mat-card-subtitle>Put your Syntax here. You only use terminals declared above</mat-card-subtitle>
     <!--</mat-card-header>-->
     <mat-card-content>
       <mat-form-field>
@@ -44,7 +20,12 @@
       </button>
       <mat-divider></mat-divider>
       <mat-table #table [dataSource]="nonTerminalDataSource">
-
+        <ng-container matColumnDef="IsStartSymbol">
+          <mat-header-cell *matHeaderCellDef> IsStartSymbol</mat-header-cell>
+          <mat-cell *matCellDef="let element">
+            <mat-radio-button [value]="element.identifier" (change)="isStartSymbolChanged($event)"></mat-radio-button>
+          </mat-cell>
+        </ng-container>
         <!-- Identifier Column -->
         <ng-container matColumnDef="Identifier">
           <mat-header-cell *matHeaderCellDef> Identifier</mat-header-cell>
@@ -63,6 +44,9 @@
             <button mat-icon-button (click)="removeNonterminal(row)">
               <mat-icon aria-label="Remove this terminal">remove</mat-icon>
             </button>
+            <button mat-icon-button (click)="editNonterminal(row)">
+              <mat-icon aria-label="Remove this definition">edit</mat-icon>
+            </button>
           </mat-cell>
         </ng-container>
         <mat-header-row *matHeaderRowDef="nonTerminalDisplayedColumns"></mat-header-row>
@@ -71,4 +55,5 @@
 
     </mat-card-content>
   </mat-card>
+  <button mat-button (click)="sendRequest()">Click me!</button>
 </div>
