@@ -1,0 +1,74 @@
+<!--The content below is only a placeholder and can be replaced.-->
+
+<div style="display: block; min-width: 100%">
+  <mat-card class="definition-declaration">
+    <!--<mat-card-header>-->
+    <mat-card-title>Definitions</mat-card-title>
+    <mat-card-subtitle>Identifier definitions for further usage in rules declarations</mat-card-subtitle>
+    <!--</mat-card-header>-->
+    <mat-card-content>
+      <mat-form-field>
+        <input matInput id="identifier" placeholder="Identifier" required [formControl]="defIdFormControl" value="">
+        <mat-hint>E.g: WhiteSpace</mat-hint>
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput placeholder="Regular Expression" required [formControl]="defExprFormControl" value="">
+        <mat-hint>E.g: [ ] | \t | \f | \n | \r</mat-hint>
+      </mat-form-field>
+      <button mat-icon-button (click)="addDefinition()">
+        <mat-icon aria-label="Add a definition">add</mat-icon>
+      </button>
+      <mat-divider></mat-divider>
+      <mat-table #table [dataSource]="definitionsDataSource">
+
+        <!-- Identifier Column -->
+        <ng-container matColumnDef="Identifier">
+          <mat-header-cell *matHeaderCellDef> Keyword</mat-header-cell>
+          <mat-cell *matCellDef="let element"> {{element.identifier}}</mat-cell>
+        </ng-container>
+
+        <!-- Expression Column -->
+        <ng-container matColumnDef="Expression">
+          <mat-header-cell *matHeaderCellDef> Token</mat-header-cell>
+          <mat-cell *matCellDef="let element"> {{element.expression}}</mat-cell>
+        </ng-container>
+        <!--remove column-->
+        <ng-container matColumnDef="Remove">
+          <mat-header-cell *matHeaderCellDef> Remove</mat-header-cell>
+          <mat-cell *matCellDef="let row">
+            <button mat-icon-button (click)="removeDefinition(row)">
+              <mat-icon aria-label="Remove this definition">remove</mat-icon>
+            </button>
+
+          </mat-cell>
+        </ng-container>
+        <mat-header-row *matHeaderRowDef="defDisplayedColumns"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: defDisplayedColumns;"></mat-row>
+      </mat-table>
+      <mat-divider></mat-divider>
+
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card id="rule-declaration">
+    <!--<mat-card-header>-->
+    <mat-card-title>Tokens</mat-card-title>
+    <mat-card-subtitle>Put your tokens here. You can use definitions declared above</mat-card-subtitle>
+    <!--</mat-card-header>-->
+    <mat-card-content>
+      <mat-form-field>
+        <input matInput id="keyword" placeholder="Key word" required [formControl]="keywordFormControl" value="">
+        <mat-hint>E.g: boolean</mat-hint>
+
+      </mat-form-field>
+      <button mat-icon-button (click)="addRule()">
+        <mat-icon aria-label="Remove this definition">add</mat-icon>
+      </button>
+      <mat-chip-list>
+        <mat-chip *ngFor="let rule of rules">{{rule.keyword}}</mat-chip>
+      </mat-chip-list>
+
+    </mat-card-content>
+  </mat-card>
+
+</div>
